@@ -1,0 +1,25 @@
+#summary CyTE repository access help and general Subversion information.
+#labels Phase-Implementation,Phase-Deploy
+
+=CyTE Repository Help=
+
+==General Subversion Information==
+The CyTE development team currently uses [http://subversion.tigris.org/ Subversion] for version control. In order to download the latest development version of CyTE, you will need to have the [http://subversion.tigris.org/ Subversion client] installed locally or on your development machine (alternatively, you can download the latest distribution release on our [http://code.google.com/p/cyte/downloads/list downloads page]).
+
+For more information, including installation instructions, visit http://subversion.tigris.org/.
+
+==Checking out the latest version of CyTE==
+
+  * Repository location: svn checkout http://cyte.googlecode.com/svn/trunk/
+
+To Checkout CyTE from the terminal, enter the following (replace '*{local directory}*' with the name of the folder you want Subversion to create the CyTE files in):
+
+{{{
+svn checkout http://cyte.googlecode.com/svn/trunk/ {local directory}
+}}}
+
+==Contributing to the CyTE Repository==
+If you are a member of the CyTE Development team, you can contribute code to the repository using the following command (replace '*{user.name}*' with your Google user ID):
+{{{
+svn checkout https://cyte.googlecode.com/svn/trunk/ cyte --username {user.name}
+}}}
