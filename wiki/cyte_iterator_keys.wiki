@@ -152,7 +152,7 @@ Any additional items in the list will be ignored.
 
 }}}
 
-=Defining custom filters+
+=Defining custom filters=
 Filters should be defined in the filters class which is located in cyte/engine/filters.class.php.
 
 *Example:* Filter prototype
