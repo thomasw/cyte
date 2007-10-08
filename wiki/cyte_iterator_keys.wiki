@@ -35,7 +35,7 @@ The iterator functionality depends on the key being passed a valid template. Wit
 {{{
 
 function check_attributes() {
-	if(is_empty($this->content)) {
+	if(empty($this->content)) {
 		$this->failed = TRUE;
 	}
 }
