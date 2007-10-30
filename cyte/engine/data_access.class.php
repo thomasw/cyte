@@ -14,44 +14,70 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ****/
-# NOTES of changes:
-// _prepare() is now prepare()
-// repost() deprecated. everytime writing to the database, use appropriate clean functions
-// _parse_options()  is now parse_options()
-// fill() is now set_field_values
-// no more set or record classes. Table classes will have single and multiple record sets now
-// objects and ids are now result_set and result_id_set respectively
-// number is now num_results and total is now total_avail
-// no set_defaults or any of those. just do that in the constructor, jackass
 
-/* possibly add options to get_record and get_set that allow for an easier way 
-to get a list of required values and a list of 'one of these' values, or, as I
-like to call them and_array and or_array */
-
-/* work on edit and archive transactioning so that the right versions 
-are backed up in the right order in case of many edits */
-
-// insures there is only one instance of the database connection
+/**		<singleton_db>
+ *
+ *	insures there is only one instance of the database connection
+ *
+ * @author		Greg Allard
+ * @version		1.1		10/11/7
+**/
 class singleton_db  {
-	// object instance
-	private static $instance;
+	// object instances
+	private static $instances = array();
 	
 	// suppress the use of these functions
 	private function __construct()  {}
 	private function __clone()  {}
 	
-	public static function get_instance()  {
-		// check for previous instantiation
-		if (self::$instance === null)  {
-			global $site_conf;									// contains connection info
+	/**		<get_instance>
+	 *
+	 *	gets current instance of db for a dsn. inits if needs
+	 *
+	 * @author		Greg Allard
+	 * @version		1.1		10/11/7
+	 * @param		string		dsn
+	 * @return		res			the db resource
+	**/
+	public static function get_instance($dsn = '')  {
+		global $site_conf;
+		
+		// if nothing passed, use dsn from site config
+		if ($dsn == '')  {
+			$dsn = $site_conf['dsn'];
+		}
+		
+		// if not active
+		if (!self::is_active($dsn))  {
+			// activate it
 			
-			$res = DB::connect($site_conf['dsn'], TRUE);		// try to connect with info. persistent = TRUE
+			$res = DB::connect($dsn, TRUE);						// try to connect with info. persistent = TRUE
 			if (DB::isError($res) || PEAR::isError($res))  {	// if there is a failure
 				return $res;									// return an error message
 			}													// if no problems
-			self::$instance = $res;								// set instance to the resource
+			self::$instances[$dsn] = $res;						// set instance to the resource
 		}
-		return self::$instance;
+		
+		return self::$instances[$dsn];
+	}
+	
+	/**		<is_active>
+	 *
+	 *	checks if there is an active connection for a dsn
+	 *
+	 * @author		Greg Allard
+	 * @version		1.0		10/11/7
+	 * @param		string		dsn
+	 * @return		boolean
+	**/
+	public static function is_active($dsn = '')  {
+		global $site_conf;
+		// if nothing passed, use dsn from site config
+		if ($dsn == '')  {
+			$dsn = $site_conf['dsn'];
+		}
+		// will return true if the dsn is found as a key in locators
+		return array_key_exists($dsn, self::$instances);
 	}
 }
 
@@ -85,6 +111,7 @@ abstract class data_access  {
 	function __construct($parameters = array())  {
 		global $errors;
 		global $lang;
+		global $site_conf;
 		
 		# Set obj properties to default values.
 		$this->field_values				= array();
@@ -108,6 +135,7 @@ abstract class data_access  {
 		$this->options['sort']			= $this->id_field;
 		$this->options['direction']		= 'ASC';
 		$this->options['get_new_id']	= FALSE;
+		$this->options['dsn']			= $site_conf['dsn'];
 	}
 	
 	
@@ -236,13 +264,13 @@ abstract class data_access  {
 	 * insures that there is only one connection made.
 	 *
 	 * @author		Greg Allard
-	 * @version		3.1		8/1/7
+	 * @version		3.2		10/11/7
 	 * @param		none
 	 * @return		mixed		true on success or an error object on failure
 	 *
 	 */
 	protected function prepare()  {
-		$this->db = singleton_db::get_instance();
+		$this->db = singleton_db::get_instance($this->options['dsn']);
 		
 		if (DB::isError($this->db) || PEAR::isError($this->db))  {			// if there is a failure
 			return $this->db;												// return an error message
@@ -282,7 +310,9 @@ abstract class data_access  {
 			$sql = "INSERT INTO `".$this->table_name."` SET ";
 			
 			// Set the created time to now
-			$this->{$this->created_field} = time();
+			if (!isset($this->{$this->created_field}) || $this->{$this->created_field} == 0)  {
+				$this->{$this->created_field} = time();
+			}
 			
 			// Set the last mod time
 			if (isset($this->options['last_mod_time']) && $this->options['last_mod_time'] != '')  {
@@ -299,7 +329,7 @@ abstract class data_access  {
 			// Loop through each of the names and write some sql
 			foreach ($field_values as $field_name => $value)  {
 				// if not the primary key
-				if ($field_name != $this->id_field)  {
+				if ($field_name != $this->id_field || (isset($this->$field_name) && $this->$field_name != ''))  {
 					// if this isn't the first statement
 					if ($i != 0)  {
 						// separate statements with commas
@@ -892,7 +922,7 @@ abstract class data_access  {
 					// store the results in this object
 					
 					$this->result_set[]    = $result_object;		// this will put the object in to this->objects
-					$this->result_id_set[] = $this->id_field;	// an array of ids is used in some cases
+					$this->result_id_set[] = $row[$this->id_field];	// an array of ids is used in some cases
 				}
 				
 				$this->num_results = count($this->result_set);
@@ -988,6 +1018,7 @@ abstract class data_access  {
 	 *
 	 */
 	function add_join($options = array())  {
+		$this->parse_options($options);
 		// check for required parameters
 		if (is_array($options)			&&
 			isset($options['id'])		&&
@@ -1063,6 +1094,7 @@ abstract class data_access  {
 	 *
 	 */
 	function remove_join($options = array())  {
+		$this->parse_options($options);
 		// check for required parameters
 		if (is_array($options)			&&
 			isset($options['id'])		&&
@@ -1139,6 +1171,7 @@ abstract class data_access  {
 	 *
 	 */
 	function has_join($options = array())  {
+		$this->parse_options($options);
 		// check for required parameters
 		if (is_array($options)			&&
 			isset($options['id'])		&&
