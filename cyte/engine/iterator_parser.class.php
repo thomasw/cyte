@@ -63,11 +63,11 @@ class iterator_parser {
 			$var = $mapping['var'];
 			
 			# Pull the data from the object.
-			if($var == "this") {											// User wants to print the 'object' meaning that $object probably isn't an object at all.
+			if($var == "this") {												// User wants to print the 'object' meaning that $object probably isn't an object at all.
 				$data = $object;
-			} else if(property_exists($object, $var)) {						// User wants a property of the object - let's check to make sure that the property actually exists.
+			} else if(is_object($object) && property_exists($object, $var)) {	// User wants a property of the object - let's check to make sure that the property actually exists.
 				$data = $object->$var;
-			} else {														// Attempting to acces a non-existant property - throwing an error.
+			} else {															// Attempting to acces a non-existant property - throwing an error.
 				if(get_class($object)) {
 					$this->errors[] = $lang['key_err_011'].get_class($object).'->'.$var;
 				} else {
