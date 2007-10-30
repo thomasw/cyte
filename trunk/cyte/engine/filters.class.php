@@ -100,5 +100,13 @@ class filters {
 			return $plural_suffix;
 		}
 	}
+	
+	/**
+	 *
+	 *		for alternating row colors
+	**/
+	public function mod($count, $params = '')  {
+		return $count%2;
+	}
 }
 ?>
