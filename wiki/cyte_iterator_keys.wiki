@@ -85,6 +85,7 @@ To access a property of an element in the iterator list and output it, use the f
 }}}
 
 To access an element of the iterator list, use the following:
+
 *Example:* A short iterator tag that accesses an iterator element
 {{{
 {this}
