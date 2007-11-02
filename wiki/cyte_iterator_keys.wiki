@@ -84,11 +84,20 @@ To access a property of an element in the iterator list and output it, use the f
 {var}
 }}}
 
-To access an element of the iterator list, use the following:
+To access the entire element in the iterator list, use the following:
 
 *Example:* A short iterator tag that accesses an iterator element
 {{{
 {this}
+}}}
+
+This is useful when your iterator list contains variables that are not objects.
+
+You can also access the current iterator list element's position using *this.count*.
+
+*Example:* A short iterator tag that outputs the current element's position in the iterator list.
+{{{
+{this.count}
 }}}
 
 == Filtered iterator tag ==
