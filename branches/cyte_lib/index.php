@@ -15,7 +15,7 @@
 * limitations under the License.
 */
 
-require('cyte/core.php');
+require('cyte/config.php');
 
 
 

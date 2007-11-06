@@ -15,13 +15,15 @@
 * limitations under the License.
 ****/
 
-abstract class visitor extends data_access  {
+
+// extend this class with your user class
+class visitor extends data_access  {
 	public $authorized;														# Boolean value that indicates whether the user is authorized to view a page
 	
 	public $authorizer;
 	public $errors;
 	
-	function __construct($auth_routine, $auth_requirement, $auth_params, $db_params) {
+	function __construct($auth_routine = '', $auth_requirement = '', $auth_params = array(), $db_params = array()) {
 		global $errors;
 		
 		# Set default values
@@ -34,12 +36,18 @@ abstract class visitor extends data_access  {
 		# Check to see if auth_requirement is not 0 before calling auth_routine
 		if ($auth_requirement > 0)  {
 			$this->authorizer		= $this->instantiate_authorizer($auth_routine, $auth_params);
-			//$this->authorized 		= $this->authorize($auth_params);
 		}
 	}
 	
-	abstract function authorize();
-	abstract function deauthorize();
+	// Overwrite these functions in your user class
+	function authorize()     {}
+	function deauthorize()   {}
+	// Overwrite these from data_access class
+	function check_create()  {}
+	function check_get()     {}
+	function check_edit()    {}
+	function check_delete()  {}
+	function check_set()     {}
 	
 	private function instantiate_authorizer($auth_routine, $auth_params) {
 		global $template_conf, $lang;
