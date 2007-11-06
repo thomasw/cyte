@@ -19,6 +19,8 @@
  * CyTE Configuration File
  */
 
+
+
 # Some servers may have doc root set weird or this may be installed in a sub dir
 # Try to find out where we are
 
@@ -53,11 +55,15 @@ $site_conf = array(
 
 $template_conf = array (
 	// This is the path to the templates directory.
-	'template_path'		    		=>	$_SERVER['DOCUMENT_ROOT'].'cyte/engine/templates/',
+	'template_path'		    		=>	$_SERVER['DOCUMENT_ROOT'].'cyte/templates/',
 	// This is the path to the keys directory.
-	'key_path' 						=>	$_SERVER['DOCUMENT_ROOT'].'cyte/engine/keys/',
+	'key_path' 						=>	$_SERVER['DOCUMENT_ROOT'].'cyte/keys/',
 	// This is the path to the classes directory.
 	'class_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/classes/',
+	// This is the path to the locators directory. Used to autoload files.
+	'class_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/locators/',
+	// This is the path to the filters directory. Used in iterators.
+	'class_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/filters/',
 	// This is the name of the default template.
 	'def_template' 		    		=>	'default.html',
 	// Load default template if CyTE fails to load the template passed to the page constructor.
@@ -72,11 +78,11 @@ $template_conf = array (
 	// Debug mode - Output cyte_errors array in HTML comments on every page load.
 	'debug_mode'					=>	TRUE,
 	// This is the path to the authorization routines directory.
-	'auth_routines' 				=>	$_SERVER['DOCUMENT_ROOT'].'cyte/engine/auth_routines/',
+	'auth_routines' 				=>	$_SERVER['DOCUMENT_ROOT'].'cyte/auth_routines/',
 	// This is the path to the post handlers directory.
-	'post_handlers' 				=>	$_SERVER['DOCUMENT_ROOT'].'cyte/engine/post_handlers/',
+	'post_handlers' 				=>	$_SERVER['DOCUMENT_ROOT'].'cyte/post_handlers/',
 	// This is the path to the get handlers directory.
-	'get_handlers' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/engine/get_handlers/',
+	'get_handlers' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/get_handlers/',
 	// Name of language pack.
 	'language'						=>	'english-us.php',
 	// Default authorization form
@@ -131,8 +137,8 @@ $template_conf = array (
 	'def_auth_req'					=>	2,
 	// Output processing time in html comment at the bottom of all pages
 	'show_processing_time'			=>	TRUE,
-	// Default User class to be used with authorization
-	'def_user'						=> 'user'
+	// Default User class to be used with authorization. The class that extends visitor
+	'def_user'						=> 'visitor'
 );
 
 
@@ -140,5 +146,8 @@ $template_conf = array (
 $safe_keys = array(
 	'link'
 );
+
+// include the cyte core
+require_once('engine/core.php');
 
 ?>

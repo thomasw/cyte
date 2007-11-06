@@ -21,17 +21,14 @@
 # Instantiate global errors array
 $errors = array();
 
-# Configuartion File
-require_once('config.php');
-
 # Utility functions
 require_once('util.php');
 
 # Language file
-require_once('engine/languages/'.$template_conf['language']);
+require_once('languages/'.$template_conf['language']);
 
 # Template engine
-require_once('engine/engine.php');
+require_once('engine.php');
 
 # Require data objects
 require_once('locator.php');
