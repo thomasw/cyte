@@ -68,7 +68,7 @@ class iterator_parser {
 				$data = $object;
 			} else if($var == "this.count"){
 				$data = $count;
-			} else if(property_exists($object, $var)) {						// User wants a property of the object - let's check to make sure that the property actually exists.
+			} else if(is_object($object) && property_exists($object, $var)) {	// User wants a property of the object - let's check to make sure that the property actually exists.
 				$data = $object->$var;
 			} else {														// Attempting to acces a non-existant property - throwing an error.
 				if(get_class($object)) {
