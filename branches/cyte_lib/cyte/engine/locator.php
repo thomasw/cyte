@@ -50,7 +50,7 @@ class service_locator  {
 	 * Contains any attached service locators
 	 * @var array Locator
 	**/
-	protected static $locators = array();
+	public static $locators = array();
 	
 	/**
 	 * Attach a new type of locator
@@ -97,169 +97,20 @@ class service_locator  {
 	}
 }
 
-/**
- *		<cyte_locator>
- *
- *	Include CyTE classes in the class_path
- *
-**/
-class cyte_locator implements locator  {
-	protected $base;
-	
-	public function __construct()  {
-		global $template_conf;
-        $this->base = $template_conf['class_path'];
-    }
-   
-    public function can_locate($class)  {
-        $path = $this->get_path($class);
-        if (file_exists($path))  {
-			return true;
-		}
-        else  {
-			return false;
-		}
-    }
-   
-    public function get_path($class)  {
-        return $this->base . '/' . $class . '.class.php';
-    }
-}
+# Create the two locators that find CyTE locators and developer locators
 
 /**
- *		<inc_pear_locator>
+ *		<locator_cyte_locator>
  *
- *	PEAR files may be included in the classes folder and not installed on the system
- *
-**/
-class inc_pear_locator implements locator  {
-	protected $base;
-	
-	public function __construct()  {
-		global $template_conf;
-        $this->base = $template_conf['class_path'];
-    }
-   
-    public function can_locate($class)  {
-        $path = $this->get_path($class);
-        if (file_exists($path))  {
-			return true;
-		}
-        else  {
-			return false;
-		}
-    }
-   
-    public function get_path($class)  {
-		// if classes are in directories, see if they use pear's naming scheme
-        return $this->base.str_replace('_', '/', $class).'.php';
-    }
-}
-
-/**
- *		<sub_cyte_locator>
- *
- *	Include CyTE classes in sub directories of the class_path
+ *	Include CyTE's locator files when they are attached
  *
 **/
-class sub_cyte_locator implements locator  {
-	protected $base;
-	
-	public function __construct()  {
-		global $template_conf;
-        $this->base = $template_conf['class_path'];
-    }
-   
-    public function can_locate($class)  {
-        $path = $this->get_path($class);
-        if (file_exists($path))  {
-			return true;
-		}
-        else  {
-			return false;
-		}
-    }
-   
-    public function get_path($class)  {
-		// if classes are in directories, see if they use pear's naming scheme
-        return $this->base.str_replace('_', '/', $class).'.class.php';
-    }
-}
-
-#	CyTE Key should be included by the parser, but we can check just in case
-#	One could extend another
-
-/**
- *		<sub_cyte_locator>
- *
- *	Include CyTE keys in the key folder
- *
-**/
-class key_locator implements locator  {
-	protected $base;
-	
-	public function __construct()  {
-		global $template_conf;
-        $this->base = $template_conf['key_path'];
-    }
-   
-    public function can_locate($class)  {
-        $path = $this->get_path($class);
-        if (file_exists($path))  {
-			return true;
-		}
-        else  {
-			return false;
-		}
-    }
-   
-    public function get_path($class)  {
-		// key path and naming scheme
-        return $this->base.$class.'.php';
-    }
-}
-
-/**
- *		<sub_cyte_locator>
- *
- *	Include CyTE keys in sub key folders
- *
-**/
-class sub_key_locator implements locator  {
-	protected $base;
-	
-	public function __construct()  {
-		global $template_conf;
-        $this->base = $template_conf['key_path'];
-    }
-   
-    public function can_locate($class)  {
-        $path = $this->get_path($class);
-        if (file_exists($path))  {
-			return true;
-		}
-        else  {
-			return false;
-		}
-    }
-   
-    public function get_path($class)  {
-		// key path and naming scheme
-        return $this->base.str_replace('_', '/', $class).'.php';
-    }
-}
-
-/**
- *		<pear_locator>
- *
- *	Include PEAR files installed on the system
- *
-**/
-class pear_locator implements locator  {
+class locator_cyte_locator implements locator  {
 	protected $base = '';
 	
 	public function __construct($directory = '')  {
-		$this->base = (string) $directory;
+		global $template_conf;
+        $this->base = $template_conf['engine_path'];
 	}
 	
 	public function can_locate($class)  {
@@ -277,14 +128,38 @@ class pear_locator implements locator  {
 	}
 }
 
+/**
+ *		<locator_locator>
+ *
+ *	Include developer added locators based on config locator path
+ *
+**/
+class locator_locator implements locator  {
+	protected $base;
+	
+	public function __construct()  {
+		global $template_conf;
+        $this->base = $template_conf['locator_path'];
+    }
+   
+    public function can_locate($class)  {
+        $path = $this->get_path($class);
+        if (file_exists($path))  {
+			return true;
+		}
+        else  {
+			return false;
+		}
+    }
+   
+    public function get_path($class)  {
+		// key path and naming scheme
+        return $this->base.str_replace('_', '/', $class).'.php';
+    }
+}
 
-
-// attach the locators
-service_locator::attach_locator(new cyte_locator(), 'CyTE');
-service_locator::attach_locator(new inc_pear_locator(), 'inc_PEAR');
-service_locator::attach_locator(new sub_cyte_locator(), 'sub_CyTE');
-service_locator::attach_locator(new key_locator(), 'key');
-service_locator::attach_locator(new sub_key_locator(), 'sub_key');
-service_locator::attach_locator(new pear_locator(), 'PEAR');
+// attach the two locator locators
+service_locator::attach_locator(new locator_cyte_locator(), 'CyTE_locators');
+service_locator::attach_locator(new locator_locator(), 'locators');
 
 ?>
