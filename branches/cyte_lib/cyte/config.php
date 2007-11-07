@@ -88,53 +88,11 @@ $template_conf = array (
 	// Default authorization form
 	'def_auth_form'		    		=>	'login.html',
 	// Default authorization routine
-	'def_auth_routine'	    		=>	'defauth',
+	'def_auth_routine'	    		=>	'',
 	// Default authorization parameters (to be sent to the authorizer and auth routine)
-	'def_auth_params'	    		=>  // change this if using ldap auth routine, or a custom routine requires
-		/**
-		 *		LDAP configuration
-		 *
-		 *	@see	ldap::__constructor() for defaults and what can be set
-		**/
-		array(
-			'use_cookies'					=> true,
-			
-			# set default values for the options						Examples:
-			'host'							=> 'localhost',				# ldap.netsols.de or 127.0.0.1
-			'port'							=> '389',					# 636 or whereever your server runs
-			// url overrides host/port combo. useful for ldaps://
-			'url'							=> '',						# ldaps://ldap.netsols.de
-			// will bind as this instead of anonymous if set
-			'binddn'						=> '',						# 'cn=Jan Wagner,ou=Users,dc=netsols,dc=de'
-			'bindpw'						=> '',						# The password to use for binding with binddn
-			'scope'							=> 'sub',					# one, sub (default), or base
-			// the base distinguished name of your server
-			'basedn'						=> '',						# 'o=netsols,c=de' or 'cn=admin,o=netsols,c=de'
-			// gets prepended to basedn when searching for user
-			'userdn'						=> '',						# 'ou=People', 'ou=Users'
-			// the user attribute to search for
-			'userattr'						=> "uid",					# 'samAccountName'
-			// array of attributes to return from the search (userattr) will always be retrieved
-			'attributes'					=> array(),					# array('whencreated', 'objectguid', 'sn', 'givenname')
-			// objectclass of user (for the search filter)
-			'useroc'						=> 'posixAccount',			# 'user'
-			// gets prepended to basedn when searching for group
-			'groupdn'						=> '',						# 'ou=Groups'
-			// the group attribute to search for (default: cn)
-			'groupattr'						=> 'cn',					
-			// objectclass of group (for the search filter)
-			'groupoc'						=> 'groupOfUniqueNames',	# 'posixGroup'
-			// the attribute of the group object where the user dn may be found
-			'memberattr'					=> 'uniqueMember',			# 'memberUid'
-			// whether the memberattr is the dn of the user (default) or the value of userattr (usually uid)
-			'memberisdn'					=> true,
-			// the name of group to search for
-			'group'							=> '',						# admin
-			// Enable/Disable debugging output
-			'debug'							=> false
-		),
+	'def_auth_params'	    		=>  array(),
 	// Default authorization level
-	'def_auth_req'					=>	2,
+	'def_auth_req'					=>	1,
 	// Output processing time in html comment at the bottom of all pages
 	'show_processing_time'			=>	TRUE,
 	// Default User class to be used with authorization. The class that extends visitor

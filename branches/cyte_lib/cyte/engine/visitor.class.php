@@ -24,7 +24,7 @@ class visitor extends data_access  {
 	public $errors;
 	
 	function __construct($auth_routine = '', $auth_requirement = '', $auth_params = array(), $db_params = array()) {
-		global $errors;
+		global $errors, $lang;
 		
 		# Set default values
 		$this->authorized		= false;
@@ -35,7 +35,19 @@ class visitor extends data_access  {
 			
 		# Check to see if auth_requirement is not 0 before calling auth_routine
 		if ($auth_requirement > 0)  {
-			$this->authorizer		= $this->instantiate_authorizer($auth_routine, $auth_params);
+			# if auth routine isn't set
+			if (!isset($auth_routine) || $auth_routine == '')  {
+				# if auth is required
+				if ($auth_requirement == 1)  {
+					# print error
+					$this->errors[] = $lang['err_018'];
+					$this->fatal_error();
+				}
+			}
+			else  {
+				# it is set, instantiate it
+				$this->authorizer		= $this->instantiate_authorizer($auth_routine, $auth_params);
+			}
 		}
 	}
 	
