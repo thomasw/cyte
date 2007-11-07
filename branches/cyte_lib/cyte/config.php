@@ -61,9 +61,11 @@ $template_conf = array (
 	// This is the path to the classes directory.
 	'class_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/classes/',
 	// This is the path to the locators directory. Used to autoload files.
-	'class_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/locators/',
+	'locator_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/locators/',
 	// This is the path to the filters directory. Used in iterators.
-	'class_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/filters/',
+	'filter_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/filters/',
+	// This is the path to the main CyTE files.
+	'engine_path' 					=>	$_SERVER['DOCUMENT_ROOT'].'cyte/engine/',
 	// This is the name of the default template.
 	'def_template' 		    		=>	'default.html',
 	// Load default template if CyTE fails to load the template passed to the page constructor.
@@ -107,5 +109,7 @@ $safe_keys = array(
 
 // include the cyte core
 require_once('engine/core.php');
+
+// Add locations to the service locator
 
 ?>
