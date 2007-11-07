@@ -124,7 +124,8 @@ class page {
 		$this->current_user			= new $template_conf['def_user']($auth_routine, $auth_requirement, $auth_params);
 		$this->avail_templates		= list_files($template_conf['template_path']);
 		$this->page					= FALSE;
-		$this->avail_keys			= $this->get_keys();
+		$this->avail_keys			= $this->get_keys($template_conf['engine_path'].'keys/');	// add cyte's basic keys
+		$this->avail_keys			= array_merge($this->avail_keys, $this->get_keys());		// add developer keys from specified directory
 		
 		# Check that we have a list of available templates, otherwise die.
 		if($this->avail_templates === FALSE) {
