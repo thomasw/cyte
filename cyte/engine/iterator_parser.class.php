@@ -19,8 +19,9 @@
 *   This object is used parse iterator templates passed to iterator keys
 *
 *   Author: Thomas Welfley
+*   Modified: Jared Lang
 *   Date: 9 / 8 / 2007
-*   Version: 0.0.0
+*   Version: 0.1.0
 */
 
 class iterator_parser {
@@ -47,7 +48,7 @@ class iterator_parser {
 		}
 	}
 	
-	public function apply($object=NULL) {
+	public function apply($object=NULL, $count) {
 		if(count($this->var_map) <= 0) {
 			return implode('', $this->segmented_template);
 		}
@@ -63,11 +64,13 @@ class iterator_parser {
 			$var = $mapping['var'];
 			
 			# Pull the data from the object.
-			if($var == "this") {												// User wants to print the 'object' meaning that $object probably isn't an object at all.
+			if($var == "this") {											// User wants to print the 'object' meaning that $object probably isn't an object at all.
 				$data = $object;
+			} else if($var == "this.count"){
+				$data = $count;
 			} else if(is_object($object) && property_exists($object, $var)) {	// User wants a property of the object - let's check to make sure that the property actually exists.
 				$data = $object->$var;
-			} else {															// Attempting to acces a non-existant property - throwing an error.
+			} else {														// Attempting to acces a non-existant property - throwing an error.
 				if(get_class($object)) {
 					$this->errors[] = $lang['key_err_011'].get_class($object).'->'.$var;
 				} else {
@@ -101,7 +104,7 @@ class iterator_parser {
 		$var = "[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*"; // Courtesy of http://devzone.zend.com/manual/language.variables.html
 
 		# Valid template patterns
-		$match_pattern = "#({ *($var)( *\| *($var) *(\(([^\)}]*)\))?)? *})#";
+		$match_pattern = "#({ *($var|this.count)( *\| *($var) *(\(([^\)}]*)\))?)? *})#";
 		
 		# Split document by valid patterns
 		$segmented = preg_split($match_pattern, $template, -1, PREG_SPLIT_DELIM_CAPTURE);
