@@ -33,5 +33,11 @@ require_once('engine.php');
 # Require data objects
 require_once('locator.php');
 
+service_locator::attach_locator(new locator_cyte(), 'CyTE');
+service_locator::attach_locator(new locator_incpear(), 'inc_PEAR');
+service_locator::attach_locator(new locator_subcyte(), 'sub_CyTE');
+service_locator::attach_locator(new locator_key(), 'key');
+service_locator::attach_locator(new locator_subkey(), 'sub_key');
+service_locator::attach_locator(new locator_pear(), 'PEAR');
 
 ?>
