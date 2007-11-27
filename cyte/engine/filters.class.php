@@ -33,7 +33,7 @@ abstract class filters {
 	}
 	
 	# Implement this
-	static abstract function execute();  // where the action's at
+	abstract static function execute();  // where the action's at
 	
 	# Define filter helper functions here
 	
