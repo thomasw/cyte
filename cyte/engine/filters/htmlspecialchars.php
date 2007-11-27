@@ -21,8 +21,8 @@
 **/
 
 class filters_htmlspecialchars implements filters  {
-	static function execute($string, $trash="") {
-		return htmlspecialchars($string);
+	static function execute($data = '', $parameters = '')  {
+		return htmlspecialchars($data);
 	}
 }
 ?>

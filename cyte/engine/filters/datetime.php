@@ -21,8 +21,8 @@
 **/
 
 class filters_datetime implements filters  {
-	static function execute($time, $format="") {
-		return date($format, $time);
+	static function execute($data = '', $parameters = '')  {
+		return date($data, $parameters);
 	}
 }
 ?>

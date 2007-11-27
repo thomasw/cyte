@@ -22,12 +22,12 @@
 **/
 
 class filters_selected implements filters  {
-	static function execute($val, $compare_val) {
-		if(strpos($compare_val,',') > 0) {
-			$compare_val = explode(',',$compare_val);
-			return (in_array($val, $compare_val)) ? $val.'" selected="selected"' : $val.'"';
+	static function execute($data = '', $parameters = '')  {
+		if (strpos($parameters,',') > 0)  {
+			$parameters = explode(',',$parameters);
+			return (in_array($data, $parameters)) ? $data.'" selected="selected"' : $data.'"';
 		} else {
-			return ($val == $compare_val) ? $val.'" selected="selected"': $val.'"';
+			return ($data == $parameters) ? $data.'" selected="selected"': $data.'"';
 		}
 	}
 }
