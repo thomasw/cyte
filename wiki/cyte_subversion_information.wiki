@@ -23,3 +23,14 @@ If you are a member of the CyTE Development team, you can contribute code to the
 {{{
 svn checkout https://cyte.googlecode.com/svn/trunk/ cyte --username {user.name}
 }}}
+
+==Using CyTE as a Library==
+Browse to the directory that will contain the library folder.
+{{{
+svn propedit svn:externals .
+}}}
+It will open an edit window, enter the following
+{{{
+engine http://cyte.googlecode.com/svn/tags/Latest_Stable/cyte/engine/
+}}}
+If you want to use a different folder than engine, you can change the value in the config file.
