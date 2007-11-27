@@ -46,7 +46,7 @@ class iterator_parser {
 		}
 	}
 	
-	public function apply($object=NULL, $count) {
+	public function apply($object=NULL, $count=NULL) {
 		if(count($this->var_map) <= 0) {
 			return implode('', $this->segmented_template);
 		}
