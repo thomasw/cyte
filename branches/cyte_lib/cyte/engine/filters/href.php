@@ -16,7 +16,7 @@
 ****/
 
 /** href - Generates a link - accepts a path and a display string. */
-class filters_href extends filters  {
+class filters_href implements filters  {
 	static function execute($path, $display="") {
 		$output = '<a href="'.$path.'">';
 		

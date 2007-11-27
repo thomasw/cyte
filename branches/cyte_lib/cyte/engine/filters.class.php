@@ -18,28 +18,13 @@
 *	filters
 *   This object contains filters and their helper functions for CyTE's iterator parser.
 *
-*   Author: Thomas Welfley
-*   Date: 9 / 26 / 2007
-*   Version: 0.0.1
+*   Author: Thomas Welfley, Greg Allard
+*   Date: 11/27/2007
+*   Version: 0.1.1
 */
 
-abstract class filters {
-	
-	var $errors;
-	
-	function __construct() {
-		global $errors;
-		$this->errors		        =& $errors;
-	}
-	
+interface filters {
 	# Implement this
-	abstract static function execute();  // where the action's at
-	
-	# Define filter helper functions here
-	
-	/** comma_to_array - Splits a comma seperated list of values into an array */
-	static function comma_to_array($string) {
-		return explode(',', $string);
-	}
+	public static function execute();
 }
 ?>

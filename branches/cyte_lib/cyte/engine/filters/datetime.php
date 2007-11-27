@@ -20,7 +20,7 @@
 	Formats a unix time stamp - accepts a unix time stamp and a format string
 **/
 
-class filters_datetime extends filters  {
+class filters_datetime implements filters  {
 	static function execute($time, $format="") {
 		return date($format, $time);
 	}

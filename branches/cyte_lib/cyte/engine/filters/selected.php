@@ -21,7 +21,7 @@
 			use a comma delimited string and reconstruct the array in the filter.
 **/
 
-class filters_selected extends filters  {
+class filters_selected implements filters  {
 	static function execute($val, $compare_val) {
 		if(strpos($compare_val,',') > 0) {
 			$compare_val = explode(',',$compare_val);

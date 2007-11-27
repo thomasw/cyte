@@ -32,7 +32,7 @@
  * Any additional items in the list will be ignored.
  */
 
-class filters_pluralize extends filters  {
+class filters_pluralize implements filters  {
 	static function execute($count, $suffixlist="s") {
 		
 		# Get the suffixes from the suffixlist
