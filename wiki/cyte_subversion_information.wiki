@@ -33,4 +33,4 @@ It will open an edit window, enter the following
 {{{
 engine http://cyte.googlecode.com/svn/tags/Latest_Stable/cyte/engine/
 }}}
-If you want to use a different folder than engine, you can change the value in the config file.
+If you want to use a different folder than engine, you can change the $template_conf['engine_path'] in the config file.
