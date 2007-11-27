@@ -21,8 +21,8 @@
 **/
 
 class filters_mod implements filters  {
-	static function execute($count, $params = '')  {
-		return $count%2;
+	static function execute($data = '', $parameters = '')  {
+		return $data%2;
 	}
 }
 ?>

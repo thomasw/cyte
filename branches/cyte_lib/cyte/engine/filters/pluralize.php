@@ -33,20 +33,20 @@
  */
 
 class filters_pluralize implements filters  {
-	static function execute($count, $suffixlist="s") {
+	static function execute($data = '', $parameters = '')  {
 		
 		# Get the suffixes from the suffixlist
-		$suffixlist = filters::comma_to_array($suffixlist);
-		if(count($suffixlist) > 1) {
-			$plural_suffix = $suffixlist[1];
-			$singular_suffix = $suffixlist[0];
+		$parameters = comma_to_array($parameters);
+		if(count($parameters) > 1) {
+			$plural_suffix = $parameters[1];
+			$singular_suffix = $parameters[0];
 		} else {		
 			$singular_suffix = "";
-			$plural_suffix = $suffixlist[0];
+			$plural_suffix = $parameters[0];
 		}
 		
 		# Return the singular suffix if the count is equal to 1, plural otherwise
-		if($count == 1) {
+		if($data == 1) {
 			return $singular_suffix;
 		} else {
 			return $plural_suffix;
