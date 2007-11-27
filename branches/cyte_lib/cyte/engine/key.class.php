@@ -162,9 +162,9 @@ abstract class key {
 		$output = "";														// Instatiate output variable
 				
 		# ITERATE
-		foreach($this->iteration_list as $iteration) {
+		for($i = 0; $i < count($this->iteration_list); $i++) {
 			// Apply the template in $this->content at each iteration. Add it to $output
-			$output .= $parser->apply($iteration);
+			$output .= $parser->apply($this->iteration_list[$i], $i);
 		}
 		
 		return $output;
