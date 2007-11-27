@@ -25,6 +25,6 @@
 
 interface filters {
 	# Implement this
-	public static function execute($data, $parameters);
+	static function execute($data, $parameters);
 }
 ?>
