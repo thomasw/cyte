@@ -20,7 +20,7 @@
 	for alternating row colors
 **/
 
-class filters_mod extends filters  {
+class filters_mod implements filters  {
 	static function execute($count, $params = '')  {
 		return $count%2;
 	}

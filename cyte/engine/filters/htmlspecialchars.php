@@ -20,7 +20,7 @@
 	for alternating row colors
 **/
 
-class filters_htmlspecialchars extends filters  {
+class filters_htmlspecialchars implements filters  {
 	static function execute($string, $trash="") {
 		return htmlspecialchars($string);
 	}
