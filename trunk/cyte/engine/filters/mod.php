@@ -15,26 +15,14 @@
 * limitations under the License.
 ****/
 
-// Turn on when testing
-//error_reporting(E_ALL);
 
-# Instantiate global errors array
-$errors = array();
+/**
+	for alternating row colors
+**/
 
-# Configuartion File
-require_once('config.php');
-
-# Utility functions
-require_once('util.php');
-
-# Language file
-require_once('engine/languages/'.$template_conf['language']);
-
-# Template engine
-require_once('engine/engine.php');
-
-# Require data objects
-require_once('locator.php');
-
-
+class filters_mod implements filters  {
+	static function execute($data = '', $parameters = '')  {
+		return $data%2;
+	}
+}
 ?>

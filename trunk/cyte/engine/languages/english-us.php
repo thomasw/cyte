@@ -33,6 +33,7 @@ $lang = array(
 	"err_015"		=> "[015] Content-Key Mismatch: Ensure that your markup does not contain unclosed or malformed CyTE tags. Error occurred while executing: ",
 	"err_016"		=> "[016] An authorizor does not extend the abstract authorizor class. Authorizor: ",
 	"err_017"		=> "[017] An appropriately defined class does not exist in a authorizor file. Please verify that a class with the same name as the file resides in authorizor file for: ",	
+	"err_018"		=> "[018] Authorization is set to required, however an auth routine cannot be found or isn't specified. ",	
 	// Key Error messages
 	"key_err_001"	=> "[KEYERR-001] Key processing resulted in no output.",
 	"key_err_002"	=> "[KEYERR-002] A required parameter was not specified: ",
