@@ -891,4 +891,9 @@ function get_object_vars_noparent($object)  {
 	}
 	return $object_vars;
 }
+
+
+function comma_to_array($string)  {
+	return explode(',', $string);
+}
 ?>

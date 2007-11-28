@@ -29,7 +29,6 @@ class iterator_parser {
 	var $segmented_template;
 	var $var_map;
 	var $errors;
-	var $filters;
 	
 	function __construct($template="") {
 		global $errors;
@@ -37,18 +36,17 @@ class iterator_parser {
 		$this->template				= $template;
 		$this->segmented_template 	= array();
 		$this->var_map 				= array();
-		$this->filters				= new filters();
 				
 		if($template != "") {
 			# Segment the template and generate the variable map
 			$this->segment($template);
 		
-			# Verify that all filter calls are only calls to valid filters
-			$this->validate_filters();
+			//# Verify that all filter calls are only calls to valid filters
+			//$this->validate_filters();
 		}
 	}
 	
-	public function apply($object=NULL, $count) {
+	public function apply($object=NULL, $count=NULL) {
 		if(count($this->var_map) <= 0) {
 			return implode('', $this->segmented_template);
 		}
@@ -82,10 +80,12 @@ class iterator_parser {
 			# Insert the data into the segmented template, and if appropriate, apply a filter.
 			switch(count($mapping)) {
 				case 5: 													// Mapping has a filter and attributes
-					$mapping['reference'] = $this->filters->$mapping['filter']($data, $mapping['filter_parameters']);
+					// call the static method in the filter class
+					$mapping['reference'] = call_user_func(array('filters_'.$mapping['filter'], 'execute'), $data, $mapping['filter_parameters']);
 				break;
 				case 4:														// Mapping has just a filter
-					$mapping['reference'] = $this->filters->$mapping['filter']($data);
+					// call the static method in the filter class
+					$mapping['reference'] = call_user_func(array('filters_'.$mapping['filter'], 'execute'), $data);
 				break;
 				default:													// Mapping has just a var.
 					$mapping['reference'] = $data;
@@ -188,17 +188,18 @@ class iterator_parser {
 	private function validate_filters() {
 		global $lang;														// Global lang data
 		
-		foreach($this->var_map as &$mapping) {
-			# Check if there is a filter set
-			if(isset($mapping['filter'])) {
-				# Remove the filter call and push an error message if the filter doesn't exist.
-				if(!method_exists($this->filters, $mapping['filter']) || !is_callable(array($this->filters,$mapping['filter']))){
-					$this->errors[]= $lang['key_err_012']." ".$mapping['filter'];
-					unset($mapping['filter']);
-					unset($mapping['filter_parameters']);
-				}
-			}
-		}
+		# out of date now that filters were split to files
+		//foreach($this->var_map as &$mapping) {
+		//	# Check if there is a filter set
+		//	if(isset($mapping['filter'])) {
+		//		# Remove the filter call and push an error message if the filter doesn't exist.
+		//		if(!method_exists($this->filters, $mapping['filter']) || !is_callable(array($this->filters,$mapping['filter']))){
+		//			$this->errors[]= $lang['key_err_012']." ".$mapping['filter'];
+		//			unset($mapping['filter']);
+		//			unset($mapping['filter_parameters']);
+		//		}
+		//	}
+		//}
 		
 	}
 	
