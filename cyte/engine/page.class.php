@@ -177,7 +177,7 @@ class page {
 					// double check anyways
 					if (is_dir($key_path.$key_file))  {
 						// get its keys
-						array_merge ($more_keys, $this->get_keys($key_path.$key_file.'/', 1));
+						$more_keys = array_merge ($more_keys, $this->get_keys($key_path.$key_file.'/', 1));
 						// remove from list since its a directory and not a key file
 						unset($avail_keys[$key_path]);
 					}
