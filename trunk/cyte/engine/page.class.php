@@ -153,7 +153,7 @@ class page {
 	 * Gets all the keys in the keys directory as well as keys in sub directories.
 	 *
 	 * @author		Greg Allard
-	 * @version		1.1		11/28/7
+	 * @version		1.1.1		11/30/7
 	 * @param		string		path of directory
 	 * @return		array		filename => directory
 	 */
@@ -167,6 +167,8 @@ class page {
 		# Get a list of available keys
 		$avail_keys = list_files_as_keys($dir, 1);
 		
+		$more_keys  = array();  // start the array to add to if we find more
+		
 		// see if there were any directories containing more keys
 		if (is_array($avail_keys) && count($avail_keys) > 0)  {
 			foreach ($avail_keys as $key_file => $key_path)  {
@@ -175,15 +177,15 @@ class page {
 					// double check anyways
 					if (is_dir($key_path.$key_file))  {
 						// get its keys
-						array_merge($avail_keys, $this->get_keys($key_path.$key_file.'/'));
-						// remove from list
+						array_merge ($more_keys, $this->get_keys($key_path.$key_file.'/', 1));
+						// remove from list since its a directory and not a key file
 						unset($avail_keys[$key_path]);
 					}
 				}
 			}
 		}
 		
-		return $avail_keys;
+		return array_merge($avail_keys, $more_keys);
 		
 	}
 	
