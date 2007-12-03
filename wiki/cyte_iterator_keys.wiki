@@ -163,7 +163,7 @@ Any additional items in the list will be ignored.
 }}}
 
 =Defining custom filters=
-Filters should implement the filter interface and the function execute must be defined. The class name must be prefixed with filters. 
+Filters should implement the filter interface and the function execute must be defined. The class name must be prefixed with "filters_". The file should be named the same as the class and located in the filters folder (specified in config if you want to move it).
 
 
 
