@@ -163,13 +163,17 @@ Any additional items in the list will be ignored.
 }}}
 
 =Defining custom filters=
-Filters should be defined in the filters class which is located in cyte/engine/filters.class.php.
+Filters should implement the filter interface and the function execute must be defined. The class name must be prefixed with filters. 
 
-*Example:* Filter prototype
+
+
+*Example:* A new filter called prototype
 {{{
-
-public function pluralize($count, $suffixlist="s")
-
+class filters_prototype implements filters  {
+	static function execute($data = '', $parameters = '')  {
+		// return filtered data
+	}
+}
 }}}
 
 All filters should have two parameters. When CyTE calls the filter function, it will pass the attribute being filtered to the function as the first parameter. If it is present, the filter's control string is passed as the second parameter. 
