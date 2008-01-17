@@ -377,7 +377,7 @@ abstract class data_access  {
 	 * where key = value. Another option is to have the value as an array 
 	 * that contains possible values of 'field_name'. The last option is to 
 	 * have that second array have an operator as the first value in the array. 
-	 * Operators allowed are =,  >,  < ,  >=,  <=, and !=.
+	 * Operators allowed are =,  >,  < ,  >=,  <=, !=, LIKE, IN
 	 *
 	 * Example array:
 	 *
@@ -401,7 +401,7 @@ abstract class data_access  {
 	 *
 	 *
 	 * @author		Greg Allard
-	 * @version		3.0.3		4/17/7
+	 * @version		3.0.4		1/17/8
 	 * @param		array		an array containing requirements
 	 * @return		boolean		true on success and false on failure
 	 *
@@ -440,7 +440,7 @@ abstract class data_access  {
 			// Check to make sure the requirements are set
 			if (isset($this->options['requirements']) && is_array($this->options['requirements']) && count($this->options['requirements']) > 0)  {
 				// initialize the allowed operators array
-				$operators = array ("=", ">", "<", ">=", "<=", "!=");
+				$operators = array ("=", ">", "<", ">=", "<=", "!=", "LIKE", "IN");
 				$i = 0;  // initialize the loop counter
 				// loop through the requirements array
 				foreach ($this->options['requirements'] as $field_name => $options)  {
@@ -716,7 +716,7 @@ abstract class data_access  {
 	 * where key = value. Another option is to have the value as an array 
 	 * that contains possible values of 'field_name'. The last option is to 
 	 * have that second array have an operator as the first value in the array. 
-	 * Operators allowed are =,  >,  < ,  >=,  <=, and !=.
+	 * Operators allowed are =,  >,  < ,  >=,  <=, !=, LIKE, IN.
 	 *
 	 * There is also the possibility to get records connected through a join
 	 * table. In the parameter array, pass 'join' and set it to an array with
@@ -748,7 +748,7 @@ abstract class data_access  {
 	 * 		)
 	 *
 	 * @author		Greg Allard
-	 * @version		1.1.0		9/5/7
+	 * @version		1.1.1		1/17/8
 	 * @param		array		an array containing requirements
 	 * @return		boolean		true on success and false on failure
 	 *
@@ -822,7 +822,7 @@ abstract class data_access  {
 					$sql_from .= ' WHERE ';
 				}
 				// initialize the allowed operators array
-				$operators = array ("=", ">", "<", ">=", "<=", "!=");
+				$operators = array ("=", ">", "<", ">=", "<=", "!=", "LIKE", "IN");
 				$i = 0;  // initialize the loop counter
 				// loop through the requirements array
 				foreach ($this->options['requirements'] as $field_name => $options)  {
