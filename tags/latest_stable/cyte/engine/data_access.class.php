@@ -830,7 +830,7 @@ abstract class data_access  {
 					if (is_array($options))  {
 						// if we are not in the first loop
 						if ($i > 0)  {
-							$sql .= ' AND ';  // add AND between statements
+							$sql_from .= ' AND ';  // add AND between statements
 						}
 						
 						$open_paren = false;  // flag for if there was an open parenthesis
