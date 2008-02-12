@@ -405,6 +405,8 @@ abstract class data_access  {
 	 * @param		array		an array containing requirements
 	 * @return		boolean		true on success and false on failure
 	 *
+	 * @see			<parse_query_requirements>		get_record passes "requirements" to parse_query_requirements
+	 *
 	 */
 	function get_record($options = array())  {
 		// allow to pass an id to this function to get the record with that id
@@ -433,74 +435,14 @@ abstract class data_access  {
 			
 			
 			// Start the SQL statement
-			$sql  = ' SELECT * FROM `'.$this->table_name.'` WHERE ';
+			$sql  = ' SELECT * FROM `'.$this->table_name.'` ';
+			
 			
 			
 			# parse the requirements to build an sql query
 			// Check to make sure the requirements are set
 			if (isset($this->options['requirements']) && is_array($this->options['requirements']) && count($this->options['requirements']) > 0)  {
-				// initialize the allowed operators array
-				$operators = array ("=", ">", "<", ">=", "<=", "!=", "LIKE", "IN");
-				$i = 0;  // initialize the loop counter
-				// loop through the requirements array
-				foreach ($this->options['requirements'] as $field_name => $options)  {
-					// if $options is an array
-					if (is_array($options))  {
-						// if we are not in the first loop
-						if ($i > 0)  {
-							$sql .= ' AND ';  // add AND between statements
-						}
-						
-						$open_paren = false;  // flag for if there was an open parenthesis
-						$j = 0;  // loop counter since $key may not start at zero or be integers
-						// need to loop through the options
-						foreach ($options as $key => $option)  {
-							// if this option is an operator
-							if (in_array ($option, $operators))  {
-								// temporarily store this which will be used in the next loop
-								$temp = ' `'.$field_name.'` '.$option.' ';
-							}
-							// if we have created a temporary sql statement
-							elseif (isset($temp) && $temp != '')  {
-								// append the value to the end of temp and append that to the end of sql
-								$sql .= ' '.$temp." '".$option."' ";
-								unset($temp);
-							}
-							// else we have multiple values to use
-							else  {
-								// if this is the first in the loop
-								if ($j == 0)  {
-									// set open_paren to true
-									$open_paren = TRUE;
-									$sql .= ' ( `'.$field_name."` = '".$option."' ";
-								}
-								else  {
-									$sql .= ' OR '.$field_name." = '".$option."' ";
-								}
-							}
-							$j++;
-						}
-						// if there was an opening ( used
-						if ($open_paren)  {
-							$sql .= ' ) ';
-							unset($open_paren);
-						}
-						
-						$i++; // update the count
-					}
-					// else we know that the = operator is the one to use and only one value to use
-					else if (!is_object($options))   {
-						// if we are not in the first loop
-						if ($i > 0)  {
-							$sql .= ' AND ';  // add AND between statements
-						}
-						
-						$sql .= ' '.$field_name." = '".$options."' ";
-						
-						$i++; // update the count
-					}
-					
-				}
+				$sql .= ' WHERE '.data_access::parse_query_requirements($this->options['requirements']);
 			}
 			
 			
@@ -754,6 +696,8 @@ abstract class data_access  {
 	 * @param		array		an array containing requirements
 	 * @return		boolean		true on success and false on failure
 	 *
+	 * @see			<parse_query_requirements>		get_set passes "requirements" to parse_query_requirements
+	 *
 	 */
 	function get_set($options = array())  {
 		$this->parse_options($options);
@@ -821,69 +765,11 @@ abstract class data_access  {
 			// Check to make sure the requirements are set
 			if (isset($this->options['requirements']) && is_array($this->options['requirements']) && count($this->options['requirements']) > 0)  {
 				if ($field_prefix == '')  {
-					$sql_from .= ' WHERE ';
+					$sql_from .= ' WHERE ';  // add it on here. can't add above since there might not be a WHERE
 				}
-				// initialize the allowed operators array
-				$operators = array ("=", ">", "<", ">=", "<=", "!=", "LIKE", "IN");
-				$i = 0;  // initialize the loop counter
-				// loop through the requirements array
-				foreach ($this->options['requirements'] as $field_name => $options)  {
-					// if $options is an array
-					if (is_array($options))  {
-						// if we are not in the first loop
-						if ($i > 0)  {
-							$sql_from .= ' AND ';  // add AND between statements
-						}
-						
-						$open_paren = false;  // flag for if there was an open parenthesis
-						$j = 0;  // loop counter since $key may not start at zero or be integers
-						// need to loop through the options
-						foreach ($options as $key => $option)  {
-							// if this option is an operator
-							if (in_array ($option, $operators))  {
-								// temporarily store this which will be used in the next loop
-								$temp = ' '.$field_prefix.'`'.$field_name.'` '.$option.' ';
-							}
-							// if we have created a temporary sql statement
-							elseif (isset($temp) && $temp != '')  {
-								// append the value to the end of temp and append that to the end of sql
-								$sql_from .= ' '.$temp." '".$option."' ";
-								unset($temp);
-							}
-							// else we have multiple values to use
-							else  {
-								// if this is the first in the loop
-								if ($j == 0)  {
-									// set open_paren to true
-									$open_paren = TRUE;
-									$sql_from .= ' ( '.$field_prefix.'`'.$field_name."` = '".$option."' ";
-								}
-								else  {
-									$sql_from .= ' OR '.$field_prefix.$field_name." = '".$option."' ";
-								}
-							}
-							$j++;
-						}
-						// if there was an opening ( used
-						if ($open_paren)  {
-							$sql_from .= ' ) ';
-							unset($open_paren);
-						}
-						$i++; // update the count
-					}
-					// else we know that the = operator is the one to use and only one value to use
-					else if (!is_object($options))   {
-						// if we are not in the first loop
-						if ($i > 0)  {
-							$sql_from .= ' AND ';  // add AND between statements
-						}
-						
-						$sql_from .= ' '.$field_name." = '".$options."' ";
-						
-						$i++; // update the count
-					}
-				}
+				$sql_from .= data_access::parse_query_requirements($this->options['requirements'], $field_prefix);
 			}
+			
 			
 			
 			// set the way to sort the results
@@ -943,6 +829,116 @@ abstract class data_access  {
 		else  {
 			return FALSE;
 		}
+	}
+	
+	
+	/**		<parse_query_requirements>
+	 *
+	 * This function will retrieve a set of records from the database based on the 
+	 * options passed. The function allows the options to be formatted in 
+	 * three ways. One way is 'field_name' => 'value'. This will get a result 
+	 * where key = value. Another option is to have the value as an array 
+	 * that contains possible values of 'field_name'. The last option is to 
+	 * have that second array have an operator as the first value in the array. 
+	 * Operators allowed are =,  >,  < ,  >=,  <=, !=, LIKE, IN.
+	 *
+	 * There is also the possibility to get records connected through a join
+	 * table. In the parameter array, pass 'join' and set it to an array with
+	 * the values 'join_table', 'join_with_id_field', and 'id' set to the
+	 * respective values. 'alt_id_field' can also be set if the join table
+	 * uses a different field name than this class does for its id.
+	 *
+	 * Example array:
+	 *
+	 * 
+	 *								array (
+	 * 										"dbfieldname" => array (
+	 *																	"option1", "option2"
+	 *																), 
+	 * 										"dbfieldname2" => array (
+	 *																	">", "option"
+	 *																), 
+	 * 										"user_level" => array (
+	 *																	">=", $auth_lev
+	 *																), 
+	 * 										"deleted" => 0
+	 *									)
+	 * 
+	 *
+	 * @author		Greg Allard
+	 * @version		1.0.0		2/12/8
+	 * @param		array		an array containing requirements
+	 * @param		string		the prefix of the field name. used when joining tables
+	 * @return		string		the sql text
+	**/
+	static function parse_query_requirements($requirements = array(), $field_prefix = '')  {
+		$sql_from = '';
+		
+		// check if something was passed
+		if (isset($requirements) && is_array($requirements) && count($requirements) > 0)  {
+			// initialize the allowed operators array
+			$operators = array ("=", ">", "<", ">=", "<=", "!=", "LIKE", "IN");
+			$i = 0;  // initialize the loop counter
+			// loop through the requirements array
+			foreach ($requirements as $field_name => $options)  {
+				// if $options is an array
+				if (is_array($options))  {
+					// if we are not in the first loop
+					if ($i > 0)  {
+						$sql_from .= ' AND ';  // add AND between statements
+					}
+					
+					$open_paren = false;  // flag for if there was an open parenthesis
+					$j = 0;  // loop counter since $key may not start at zero or be integers
+					// need to loop through the options
+					foreach ($options as $key => $option)  {
+						// if this option is an operator
+						if (in_array ($option, $operators))  {
+							// temporarily store this which will be used in the next loop
+							$temp = ' '.$field_prefix.'`'.$field_name.'` '.$option.' ';
+						}
+						// if we have created a temporary sql statement
+						elseif (isset($temp) && $temp != '')  {
+							// append the value to the end of temp and append that to the end of sql
+							$sql_from .= ' '.$temp." '".$option."' ";
+							unset($temp);
+						}
+						// else we have multiple values to use
+						else  {
+							// if this is the first in the loop
+							if ($j == 0)  {
+								// set open_paren to true
+								$open_paren = TRUE;
+								$sql_from .= ' ( '.$field_prefix.'`'.$field_name."` = '".$option."' ";
+							}
+							else  {
+								$sql_from .= ' OR '.$field_prefix.$field_name." = '".$option."' ";
+							}
+						}
+						$j++;
+					}
+					// if there was an opening ( used
+					if ($open_paren)  {
+						$sql_from .= ' ) ';
+						unset($open_paren);
+					}
+					$i++; // update the count
+				}
+				// else we know that the = operator is the one to use and only one value to use
+				else if (!is_object($options))   {
+					// if we are not in the first loop
+					if ($i > 0)  {
+						$sql_from .= ' AND ';  // add AND between statements
+					}
+					
+					$sql_from .= ' '.$field_name." = '".$options."' ";
+					
+					$i++; // update the count
+				}
+			}
+		}
+		
+		return $sql_from;
 	}
 	
 	
