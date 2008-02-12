@@ -452,6 +452,7 @@ abstract class data_access  {
 						}
 						
 						$open_paren = false;  // flag for if there was an open parenthesis
+						$j = 0;  // loop counter since $key may not start at zero or be integers
 						// need to loop through the options
 						foreach ($options as $key => $option)  {
 							// if this option is an operator
@@ -468,7 +469,7 @@ abstract class data_access  {
 							// else we have multiple values to use
 							else  {
 								// if this is the first in the loop
-								if ($key == 0)  {
+								if ($j == 0)  {
 									// set open_paren to true
 									$open_paren = TRUE;
 									$sql .= ' ( `'.$field_name."` = '".$option."' ";
@@ -477,6 +478,7 @@ abstract class data_access  {
 									$sql .= ' OR '.$field_name." = '".$option."' ";
 								}
 							}
+							$j++;
 						}
 						// if there was an opening ( used
 						if ($open_paren)  {
@@ -834,6 +836,7 @@ abstract class data_access  {
 						}
 						
 						$open_paren = false;  // flag for if there was an open parenthesis
+						$j = 0;  // loop counter since $key may not start at zero or be integers
 						// need to loop through the options
 						foreach ($options as $key => $option)  {
 							// if this option is an operator
@@ -850,7 +853,7 @@ abstract class data_access  {
 							// else we have multiple values to use
 							else  {
 								// if this is the first in the loop
-								if ($key == 0)  {
+								if ($j == 0)  {
 									// set open_paren to true
 									$open_paren = TRUE;
 									$sql_from .= ' ( '.$field_prefix.'`'.$field_name."` = '".$option."' ";
@@ -859,6 +862,7 @@ abstract class data_access  {
 									$sql_from .= ' OR '.$field_prefix.$field_name." = '".$option."' ";
 								}
 							}
+							$j++;
 						}
 						// if there was an opening ( used
 						if ($open_paren)  {
