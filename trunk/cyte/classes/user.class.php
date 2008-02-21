@@ -78,7 +78,7 @@ class user extends visitor  {
 			
 			
 			// Start the SQL statement
-			$sql  = ' SELECT * FROM `users`, `user_openids` WHERE users.user_id = user_openids.user_id AND 
+			$sql  = ' SELECT * FROM users, user_openids WHERE users.user_id = user_openids.user_id AND 
 						open_id = "'.$this->options['open_id'].'" ';
 			
 			if (isset($this->options['deleted']) && ($this->options['deleted'] == 0 || $this->options['deleted'] == 1))  {  // 2 makes it optional. ie skip this
@@ -88,14 +88,14 @@ class user extends visitor  {
 			
 			$result = $this->db->query($sql);
 			// check if there was an error executing the query
-			if (DB::isError($result))  {
+			if (PEAR::isError($result))  {
 				// report error and fail
-				$this->errors[] = $this->lang['db_102'].' $data_access->get_record() '.$result->getMessage().' SQL: '.$sql;  // unable to execute query
+				$this->errors[] = $this->lang['db_102'].' $user->get_by_open_id() '.$result->getMessage().' SQL: '.$sql;  // unable to execute query
 				return FALSE;
 			}
 			else  {  // if no errors
 				// fill the field_values with the result from the database
-				while ($row = $result->fetchrow(DB_FETCHMODE_ASSOC))  {
+				while ($row = $result->fetchrow(MDB2_FETCHMODE_ASSOC))  {
 					$this->set_field_values($row);
 				}
 				return TRUE;
@@ -123,11 +123,11 @@ class user extends visitor  {
 				return FALSE;
 			}
 			
-			$sql = "INSERT INTO `user_openids` ".
-				   "(`user_id`,        `open_id`) VALUES ".
+			$sql = "INSERT INTO user_openids ".
+				   "(user_id,        open_id) VALUES ".
 				   "('$this->user_id', '$open_id') ";
 			$result = $this->db->query($sql);
-			if (DB::isError($result))  {
+			if (PEAR::isError($result))  {
 				$this->errors[] = $this->lang['db_102'].' $user->add_open_id() '.$result->getMessage().' SQL: '.$sql;  // unable to execute
 				return false;
 			}
@@ -160,13 +160,13 @@ class user extends visitor  {
 			}
 			$sql = "SELECT * FROM user_openids WHERE user_id = '$this->user_id' AND open_id = '$open_id' ";
 			$result = $this->db->query($sql);
-			if (DB::isError($result))  {
+			if (PEAR::isError($result))  {
 				$this->errors[] = $this->lang['db_102'].' $user->has_open_id() '.$result->getMessage().' SQL: '.$sql;  // unable to execute
 				return false;
 			}
 			else  {
 				// no errors
-				while ($row = $result->fetchrow(DB_FETCHMODE_OBJECT))  {
+				while ($row = $result->fetchrow(MDB2_FETCHMODE_OBJECT))  {
 					if (isset($row->user_id) && $row->user_id != '')  {
 						return true;
 					}
