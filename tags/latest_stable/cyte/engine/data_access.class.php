@@ -15,72 +15,6 @@
 * limitations under the License.
 ****/
 
-/**		<singleton_db>
- *
- *	insures there is only one instance of the database connection
- *
- * @author		Greg Allard
- * @version		1.1		10/11/7
-**/
-class singleton_db  {
-	// object instances
-	private static $instances = array();
-	
-	// suppress the use of these functions
-	private function __construct()  {}
-	private function __clone()  {}
-	
-	/**		<get_instance>
-	 *
-	 *	gets current instance of db for a dsn. inits if needs
-	 *
-	 * @author		Greg Allard
-	 * @version		1.1		10/11/7
-	 * @param		string		dsn
-	 * @return		res			the db resource
-	**/
-	public static function get_instance($dsn = '')  {
-		global $site_conf;
-		
-		// if nothing passed, use dsn from site config
-		if ($dsn == '')  {
-			$dsn = $site_conf['dsn'];
-		}
-		
-		// if not active
-		if (!self::is_active($dsn))  {
-			// activate it
-			
-			$res = DB::connect($dsn, TRUE);						// try to connect with info. persistent = TRUE
-			if (DB::isError($res) || PEAR::isError($res))  {	// if there is a failure
-				return $res;									// return an error message
-			}													// if no problems
-			self::$instances[$dsn] = $res;						// set instance to the resource
-		}
-		
-		return self::$instances[$dsn];
-	}
-	
-	/**		<is_active>
-	 *
-	 *	checks if there is an active connection for a dsn
-	 *
-	 * @author		Greg Allard
-	 * @version		1.0		10/11/7
-	 * @param		string		dsn
-	 * @return		boolean
-	**/
-	public static function is_active($dsn = '')  {
-		global $site_conf;
-		// if nothing passed, use dsn from site config
-		if ($dsn == '')  {
-			$dsn = $site_conf['dsn'];
-		}
-		// will return true if the dsn is found as a key in locators
-		return array_key_exists($dsn, self::$instances);
-	}
-}
-
 abstract class data_access  {
 	# Properties
 	protected $table_name;													// Name of the table in the database
@@ -264,16 +198,17 @@ abstract class data_access  {
 	 * insures that there is only one connection made.
 	 *
 	 * @author		Greg Allard
-	 * @version		3.2		10/11/7
+	 * @version		3.2.1		2/21/8		switched to MDB2
 	 * @param		none
 	 * @return		mixed		true on success or an error object on failure
 	 *
 	 */
 	protected function prepare()  {
-		$this->db = singleton_db::get_instance($this->options['dsn']);
+		//$this->db = singleton_db::get_instance($this->options['dsn']);
+		$this->db = MDB2::singleton($this->options['dsn']);
 		
-		if (DB::isError($this->db) || PEAR::isError($this->db))  {			// if there is a failure
-			return $this->db;												// return an error message
+		if (PEAR::isError($this->db))  {			// if there is a failure
+			return $this->db;						// return an error message
 		}
 		else  {
 			return true;
@@ -307,7 +242,7 @@ abstract class data_access  {
 			}
 			
 			// Start the SQL statement
-			$sql = "INSERT INTO `".$this->table_name."` SET ";
+			$sql = "INSERT INTO ".$this->table_name." SET ";
 			
 			// Set the created time to now
 			if (!isset($this->{$this->created_field}) || $this->{$this->created_field} == 0)  {
@@ -335,15 +270,15 @@ abstract class data_access  {
 						// separate statements with commas
 						$sql .= " , ";
 					}
-					// `field_name` = 'new value'
-					$sql .= ' `'.$field_name."` = '".$this->$field_name."' ";
+					// field_name = 'new value'
+					$sql .= ' '.$field_name." = '".$this->$field_name."' ";
 					$i++;
 				}
 			}
 			
 			$result = $this->db->query($sql);
 			// check if there was an error executing the query
-			if (DB::isError($result))  {
+			if (PEAR::isError($result))  {
 				// report error and fail
 				$this->errors[] = $this->lang['db_102'].' $data_access->create() '.$result->getMessage().' SQL: '.$sql;  // unable to execute query
 				return FALSE;
@@ -435,7 +370,7 @@ abstract class data_access  {
 			
 			
 			// Start the SQL statement
-			$sql  = ' SELECT * FROM `'.$this->table_name.'` ';
+			$sql  = ' SELECT * FROM '.$this->table_name.' ';
 			
 			
 			
@@ -448,14 +383,14 @@ abstract class data_access  {
 			
 			$result = $this->db->query($sql);
 			// check if there was an error executing the query
-			if (DB::isError($result))  {
+			if (PEAR::isError($result))  {
 				// report error and fail
 				$this->errors[] = $this->lang['db_102'].' $data_access->get_record() '.$result->getMessage().' SQL: '.$sql;  // unable to execute query
 				return FALSE;
 			}
 			else  {  // if no errors
 				// fill the field_values with the result from the database
-				while ($row = $result->fetchrow(DB_FETCHMODE_ASSOC))  {
+				while ($row = $result->fetchRow(MDB2_FETCHMODE_ASSOC))  {
 					$this->set_field_values($row);
 				}
 				return TRUE;
@@ -486,11 +421,13 @@ abstract class data_access  {
 				return FALSE;
 			}
 			
-			// turn auto commit off to allow transactions
-			$this->db->autoCommit(FALSE);
+			// if transactions are supported, start one
+			if ($this->db->supports('transactions'))  {
+				$this->db->beginTransaction();
+			}
 			
 			// Start the SQL statement
-			$sql = ' UPDATE `'.$this->table_name.'` SET ';
+			$sql = ' UPDATE '.$this->table_name.' SET ';
 			
 			// Set the last mod time
 			if (isset($this->options['last_mod_time']) && $this->options['last_mod_time'] != '')  {
@@ -513,35 +450,39 @@ abstract class data_access  {
 						// separate statements with commas
 						$sql .= " , ";
 					}
-					// `field_name` = 'new value'
-					$sql .= ' `'.$field_name."` = '".$this->$field_name."' ";
+					// field_name = 'new value'
+					$sql .= ' '.$field_name." = '".$this->$field_name."' ";
 					$i++;
 				}
 			}
 			
-			// WHERE `primary_key_field` = id_to_update
-			$sql .= ' WHERE `'.$this->id_field."` = '".$this->{$this->id_field}."' ";
+			// WHERE primary_key_field = id_to_update
+			$sql .= ' WHERE '.$this->id_field." = '".$this->{$this->id_field}."' ";
 			
 			// before executing the update query, call the archive function to copy old contents
 			if ($this->archive())  {
 				$result = $this->db->query($sql);
 				// check if there was an error executing the query
-				if (DB::isError($result))  {
+				if (PEAR::isError($result))  {
 					// rollback the transaction, report error, and fail
-					$this->db->rollback();
+					if ($this->db->inTransaction())  {
+						$this->db->rollback();  // end the transaction
+					}
 					$this->errors[] = $this->lang['db_102'].' $data_access->edit() '.$result->getMessage().' SQL: '.$sql;  // unable to execute query
-					$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
 					return FALSE;
 				}
 				else  {  // if no errors
 					// only commit the changes if everything checks out
-					$this->db->commit();
-					$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
+					if ($this->db->inTransaction())  {
+						$this->db->commit();  // commit the changes to finish the transaction
+					}  // if transactions aren't supported, query would already have committed
 					return TRUE;
 				}
 			}
 			else  {
-				$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
+				if ($this->db->inTransaction())  {
+					$this->db->rollback();  // end the transaction
+				}
 				// archive failed, don't update without it
 				return FALSE;
 			}
@@ -571,70 +512,81 @@ abstract class data_access  {
 				$this->errors[] = $this->lang['db_101'];  // unable to connect
 				return FALSE;
 			}
-			$this->db->autoCommit(FALSE);  // turn auto commit off to allow transactions
+			
+			// if transactions are supported, start one
+			if ($this->db->supports('transactions'))  {
+				$this->db->beginTransaction();
+			}
 			
 			// if the id of the row to delete is set
 			if (isset($this->{$this->id_field}) && $this->{$this->id_field} != '')  {
 				// if we want to set deleted = 1 instead of removing from the db
 				if ($this->soft_delete)  {
-					$sql  = ' UPDATE `'.$this->table_name.'` SET ';
-					$sql .= ' `'.$this->deleted_field.'`     = 1 ';
+					$sql  = ' UPDATE '.$this->table_name.' SET ';
+					$sql .= ' '.$this->deleted_field.'     = 1 ';
 					
 					if (isset($this->last_mod_id_field) && $this->last_mod_id_field != '' && 
 						isset($this->page_current_user) && $this->page_current_user->user_id != '')  {
-							$sql .= ' , `'.$this->last_mod_id_field."` = '".$this->page_current_user->user_id."' ";
+							$sql .= ' , '.$this->last_mod_id_field." = '".$this->page_current_user->user_id."' ";
 					}
 					
-					$sql .= ' WHERE `'.$this->id_field.'` = '.$this->{$this->id_field}.' ';
+					$sql .= ' WHERE '.$this->id_field.' = '.$this->{$this->id_field}.' ';
 					
 					// before executing the update query, call the archive function to copy old contents
 					if ($this->archive())  {
 						$result = $this->db->query($sql);
 						// check if there was an error executing the query
-						if (DB::isError($result))  {
+						if (PEAR::isError($result))  {
 							// rollback the transaction, report error, and fail
-							$this->db->rollback();
+							if ($this->db->inTransaction())  {
+								$this->db->rollback();  // end the transaction
+							}
 							$this->errors[] = $this->lang['db_102'].' $data_access->delete() '.$result->getMessage().' SQL: '.$sql;  // unable to execute query
-							$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
 							return FALSE;
 						}
 						else  {  // if no errors
 							// only commit the changes if everything checks out
-							$this->db->commit();
-							$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
+							if ($this->db->inTransaction())  {
+								$this->db->commit();  // commit the changes to finish the transaction
+							}  // if transactions aren't supported, query would already have committed
 							return TRUE;
 						}
 					}
 					else  {
-						$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
+						if ($this->db->inTransaction())  {
+							$this->db->rollback();  // end the transaction
+						}
 						// archive failed. don't delete without it
 						return FALSE;
 					}
 				}
 				else  {  // else remove from db
-					$sql  = ' DELETE FROM `'.$this->table_name.'` WHERE ';
-					$sql .= ' `'.$this->id_field.'` = '.$this->{$this->id_field}.' ';
+					$sql  = ' DELETE FROM '.$this->table_name.' WHERE ';
+					$sql .= ' '.$this->id_field.' = '.$this->{$this->id_field}.' ';
 					
 					// before executing the delete query, call the archive function to copy old contents
 					if ($this->archive())  {
 						$result = $this->db->query($sql);
 						// check if there was an error executing the query
-						if (DB::isError($result))  {
+						if (PEAR::isError($result))  {
 							// rollback the transaction, report error, and fail
-							$this->db->rollback();
+							if ($this->db->inTransaction())  {
+								$this->db->rollback();  // end the transaction
+							}
 							$this->errors[] = $this->lang['db_102'].' $data_access->delete() '.$result->getMessage().' SQL: '.$sql;  // unable to execute query
-							$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
 							return FALSE;
 						}
 						else  {  // if no errors
-							// only commit the changes if everything checks out
-							$this->db->commit();
-							$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
+							if ($this->db->inTransaction())  {
+								$this->db->commit();  // commit the changes to finish the transaction
+							}  // if transactions aren't supported, query would already have committed
 							return TRUE;
 						}
 					}
 					else  {
-						$this->db->autoCommit(TRUE);  // turn auto commit back on for normal use
+						if ($this->db->inTransaction())  {
+							$this->db->rollback();  // end the transaction
+						}
 						// archive failed. don't delete without it
 						return FALSE;
 					}
@@ -714,6 +666,9 @@ abstract class data_access  {
 				return FALSE;
 			}
 			
+			// make sure to reset the limit in case it was used with another query
+			$this->db->setLimit(0,0);
+			
 			/*	If limiting the results, then two queries are needed since one is needed for
 				the limited set and another will be used to count the total available.
 			*/ 
@@ -741,7 +696,7 @@ abstract class data_access  {
 					}
 					
 					// FROM this_table, join_table WHERE this.id = join.id AND join.foreign_id = #
-					$sql_from  = 'FROM `'.$this->table_name.'`, `'.$this->options['join']['join_table'].'` '.
+					$sql_from  = 'FROM '.$this->table_name.', '.$this->options['join']['join_table'].' '.
 						'WHERE '.$this->table_name.'.'.$this->id_field.' = '.$this->options['join']['join_table'].'.'.$id_field.' '.
 						'AND '.$this->options['join']['join_table'].'.'.$this->options['join']['join_with_id_field'].' = '.$this->options['join']['id'].' ';
 					
@@ -754,7 +709,7 @@ abstract class data_access  {
 				}
 			}
 			else  {
-				$sql_from    = 'FROM `'.$this->table_name.'` ';
+				$sql_from    = 'FROM '.$this->table_name.' ';
 			}
 			
 			
@@ -773,18 +728,26 @@ abstract class data_access  {
 			
 			
 			// set the way to sort the results
-			$sql_order   = 'ORDER BY '.$field_prefix.$this->options['sort'].' '.$this->options['direction'].' ';
+			if ($this->options['sort'] != '' && $this->options['direction'] != '')  {
+				$sql_order   = 'ORDER BY '.$field_prefix.$this->options['sort'].' '.$this->options['direction'].' ';
+			}
+			else  {
+				$sql_order = '';
+			}
 			
 			// if the limit isn't set to zero
 			if ($this->options['limit'] != 0)  {
 				# create two queries
 				// the limited query
-				$sql_limit   = 'LIMIT '.$this->options['start'].', '.$this->options['limit'].' ';
-				$sql1        = $sql_select1.$sql_from.$sql_order.$sql_limit;
+				//$sql_limit   = 'LIMIT '.$this->options['start'].', '.$this->options['limit'].' ';
+				$sql1        = $sql_select1.$sql_from.$sql_order;//.$sql_limit;
 				
 				// and the query to get the count
 				$sql2              = $sql_select2.$sql_from;
-				$this->total_avail = $this->db->getOne($sql2);  // get the count
+				$this->total_avail = $this->db->queryOne($sql2);  // get the count
+				
+				// Set the limit with MDB2's set limiit function after the count is retrieved
+				$this->db->setLimit($this->options['limit'], $this->options['start']);
 			}
 			// else the limit wasn't changed
 			else  {
@@ -792,7 +755,11 @@ abstract class data_access  {
 				$sql1        = $sql_select1.$sql_from.$sql_order;
 			}
 			$result = $this->db->query($sql1);
-			if (DB::isError($result))  {
+			
+			// make sure to reset the limit for every other query
+			$this->db->setLimit(0,0);
+			
+			if (PEAR::isError($result))  {
 				$this->errors[] = $this->lang['db_102'].' $data_access->get_set() '.$result->getMessage().' SQL: '.$sql1;  // unable to execute query
 				return FALSE;
 			}
@@ -801,7 +768,7 @@ abstract class data_access  {
 				//unset the result class to prevent results from being appended to result_set instead of replacing
 				unset($this->result_set);
 				$this->result_set = Array();
-				while ($row = $result->fetchrow(DB_FETCHMODE_ASSOC))  {
+				while ($row = $result->fetchRow(MDB2_FETCHMODE_ASSOC))  {
 					// create a new object of this class
 					$this_class = get_class($this);
 					$result_object = new $this_class;
@@ -812,7 +779,9 @@ abstract class data_access  {
 					// store the results in this object
 					
 					$this->result_set[]    = $result_object;		// this will put the object in to this->objects
-					$this->result_id_set[] = $row[$this->id_field];	// an array of ids is used in some cases
+					if ($this->id_field != '')  {
+						$this->result_id_set[] = $row[$this->id_field];	// an array of ids is used in some cases
+					}
 				}
 				
 				$this->num_results = count($this->result_set);
@@ -895,7 +864,7 @@ abstract class data_access  {
 						// if this option is an operator
 						if (in_array ($option, $operators))  {
 							// temporarily store this which will be used in the next loop
-							$temp = ' '.$field_prefix.'`'.$field_name.'` '.$option.' ';
+							$temp = ' '.$field_prefix.''.$field_name.' '.$option.' ';
 						}
 						// if we have created a temporary sql statement
 						elseif (isset($temp) && $temp != '')  {
@@ -909,7 +878,7 @@ abstract class data_access  {
 							if ($j == 0)  {
 								// set open_paren to true
 								$open_paren = TRUE;
-								$sql_from .= ' ( '.$field_prefix.'`'.$field_name."` = '".$option."' ";
+								$sql_from .= ' ( '.$field_prefix.''.$field_name." = '".$option."' ";
 							}
 							else  {
 								$sql_from .= ' OR '.$field_prefix.$field_name." = '".$option."' ";
@@ -967,7 +936,7 @@ abstract class data_access  {
 			}
 			
 			// Start the SQL statement. Using an INSERT ... SELECT query to avoid old data
-			$sql = "INSERT INTO `".$this->archive_table_name."` (";
+			$sql = "INSERT INTO ".$this->archive_table_name." (";
 			
 			// Get the field names
 			$keys = array_keys(get_class_vars_noparent(get_class($this)));
@@ -978,17 +947,19 @@ abstract class data_access  {
 					// separate statements with commas
 					$sql .= " , ";
 				}
-				// `field_name`
-				$sql .= ' `'.$keys[$i]."`  ";
+				// field_name
+				$sql .= ' '.$keys[$i]."  ";
 			}
-			$sql .= ' ) SELECT * FROM `'.$this->table_name.'` ';
-			$sql .= ' WHERE `'.$this->id_field."` = '".$this->{$this->id_field}."' ";
+			$sql .= ' ) SELECT * FROM '.$this->table_name.' ';
+			$sql .= ' WHERE '.$this->id_field." = '".$this->{$this->id_field}."' ";
 			
 			$result = $this->db->query($sql);
 			// check if there was an error executing the query
-			if (DB::isError($result))  {
+			if (PEAR::isError($result))  {
 				// rollback the transaction, report error, and fail
-				$this->db->rollback();
+				if ($this->db->inTransaction())  {
+					$this->db->rollback();  // end the transaction
+				}
 				$this->errors[] = $this->lang['db_102'].' $data_access->archive() '.$result->getMessage().' SQL: '.$sql;  // unable to execute query
 				return FALSE;
 			}
@@ -1048,12 +1019,12 @@ abstract class data_access  {
 						$id_field = $this->id_field;
 					}
 					
-					//		INSERT INTO `table_name` (`id_1`, `id_2`) VALUES (#, #)
-					$sql = 'INSERT INTO `'.$options['table'].'` '.
-						   '(`'.$id_field.'`, `'.$options['id_field'].'`) VALUES '.
+					//		INSERT INTO table_name (id_1, id_2) VALUES (#, #)
+					$sql = 'INSERT INTO '.$options['table'].' '.
+						   '('.$id_field.', '.$options['id_field'].') VALUES '.
 						   '('.$this->{$this->id_field}.', '.$options['id'].') ';
 					$result = $this->db->query($sql);
-					if (DB::isError($result))  {
+					if (PEAR::isError($result))  {
 						$this->errors[] = $this->lang['db_102'].' $data_access->add_join() '.$result->getMessage().' SQL: '.$sql;  // unable to execute
 						return false;
 					}
@@ -1126,11 +1097,11 @@ abstract class data_access  {
 					
 					
 					//		DELETE FROM table WHERE id_1 = # AND id_2 = #
-					$sql = 'DELETE FROM `'.$options['table'].'` WHERE 
-							`'.$id_field.'` = '.$this->{$this->id_field}.' AND 
-							`'.$options['id_field'].'` = '.$options['id'].' ';
+					$sql = 'DELETE FROM '.$options['table'].' WHERE 
+							'.$id_field.' = '.$this->{$this->id_field}.' AND 
+							'.$options['id_field'].' = '.$options['id'].' ';
 					$result = $this->db->query($sql);
-					if (DB::isError($result))  {
+					if (PEAR::isError($result))  {
 						$this->errors[] = $this->lang['db_102'].' $data_access->remove_join() '.$result->getMessage().' SQL: '.$sql;  // unable to execute
 						return false;
 					}
@@ -1205,13 +1176,13 @@ abstract class data_access  {
 						'.$options['id_field'].' = '.$options['id'].' ';
 				
 				$result = $this->db->query($sql);
-				if (DB::isError($result))  {
+				if (PEAR::isError($result))  {
 					$this->errors[] = $this->lang['db_102'].' $data_access->has_join() '.$result->getMessage().' SQL: '.$sql;  // unable to execute
 					return false;
 				}
 				else  {
 					// no errors
-					while ($row = $result->fetchrow(DB_FETCHMODE_OBJECT))  {
+					while ($row = $result->fetchRow(MDB2_FETCHMODE_OBJECT))  {
 						if (isset($row->$id_field) && $row->$id_field != '')  {
 							return true;
 						}

@@ -30,12 +30,13 @@ require_once('engine.php');
 # The locator locates class files for inclusion
 require_once('locator.php');
 
-service_locator::attach_locator(new locator_cyte(),		'CyTE');
-service_locator::attach_locator(new locator_incpear(),	'inc_PEAR');
-service_locator::attach_locator(new locator_subcyte(),	'sub_CyTE');
-service_locator::attach_locator(new locator_key(),		'cyte_keys');
-service_locator::attach_locator(new locator_subkey(),	'cyte_sub_key');
-service_locator::attach_locator(new locator_filters(),	'cyte_filters');
-service_locator::attach_locator(new locator_pear(),		'PEAR');
+service_locator::attach_locator(new locator_cyte(),				'CyTE');
+service_locator::attach_locator(new locator_incpear(),			'inc_PEAR');
+service_locator::attach_locator(new locator_engineincpear(),	'engine_inc_PEAR');
+service_locator::attach_locator(new locator_subcyte(),			'sub_CyTE');
+service_locator::attach_locator(new locator_key(),				'cyte_keys');
+service_locator::attach_locator(new locator_subkey(),			'cyte_sub_key');
+service_locator::attach_locator(new locator_filters(),			'cyte_filters');
+service_locator::attach_locator(new locator_pear(),				'PEAR');
 
 ?>
