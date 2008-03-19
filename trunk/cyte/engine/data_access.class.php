@@ -40,6 +40,7 @@ abstract class data_access  {
 	public $result_id_set;													// This will contain an array of ids
 	public $num_results;													// Number of results for this query
 	public $total_avail;													// Number of results total in db before limit
+	public $group_counts;													// Values and counts of groupby'd columns
 	
 	
 	function __construct($parameters = array())  {
@@ -722,6 +723,9 @@ abstract class data_access  {
 				if ($field_prefix == '')  {
 					$sql_from .= ' WHERE ';  // add it on here. can't add above since there might not be a WHERE
 				}
+				else  {
+					$sql_from .= ' AND ';  // add it on here. can't add above since there might not be an AND
+				}
 				$sql_from .= data_access::parse_query_requirements($this->options['requirements'], $field_prefix);
 			}
 			
@@ -1201,6 +1205,63 @@ abstract class data_access  {
 		else  {
 			$this->errors[] = $this->lang['db_missing_param'];
 			return false;
+		}
+	}
+	
+	
+	
+	/**
+	 *
+	 *		This function groups rows by a column and returns col value and count for each
+	 *
+	 *	@author		Greg Allard
+	 *	@version	1.0.1	10/3/7
+	 *	@param		array 	containing 
+	 *				"group_col"		The column to group
+	 *	@return		bool	true or false depending on success
+	 *
+	 */
+	function group_count($options = array())  {
+		$this->parse_options($options);
+		if (isset($this->options['group_col']) && $this->options['group_col'] != '')  {
+			if ($this->prepare() !== true)  {
+				$this->errors[] = $this->lang['db_101'];  // unable to connect
+				return FALSE;
+			}
+			
+			// what to get
+			$sql_select1 = 'SELECT '.$this->options['group_col'].', count(*) as count ';
+			
+			// where to get it
+			$sql_from    = 'FROM `'.$this->table_name.'` ';
+			
+			// do the grouping
+			$sql_group   = 'GROUP BY '.$this->options['group_col'].' ';
+			
+			// set the way to sort the results
+			$sql_order   = 'ORDER BY '.$this->options['group_col'].' '.$this->options['direction'].' ';
+			
+			// concatenate em
+			$sql1        = $sql_select1.$sql_from.$sql_group.$sql_order;
+			
+			$result = $this->db->query($sql1);
+			if (DB::isError($result))  {
+				$this->errors[] = $this->lang['db_102'].' $data_access->group_count() '.$result->getMessage().' SQL: '.$sql1;  // unable to execute query
+				return FALSE;
+			}
+			else  {
+				$this->group_counts = array();
+				
+				while ($row = $result->fetchrow(DB_FETCHMODE_ASSOC))  {
+					$key = $row[$this->options['group_col']];
+					$this->group_counts[$key] = $row['count'];
+				}
+				
+				return TRUE;
+			}
+		}
+		else  {
+			return FALSE;
 		}
 	}
 	

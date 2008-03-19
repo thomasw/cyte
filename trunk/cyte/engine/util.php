@@ -896,4 +896,49 @@ function get_object_vars_noparent($object)  {
 function comma_to_array($string)  {
 	return explode(',', $string);
 }
+
+
+/**			<get_url>
+ *
+ * This function will return a url string (without htmlentities applied) with all
+ * the current GET args as well as any replaced/added via the args array
+ *
+ *	@author		Chris Havreberg, Greg Allard
+ *	@version	1.0.1		7/16/7
+ *	@param		array		an array of name/value pairs to place into the get string
+ *	@param		string		the url to link to, defaults to self
+ *	@return		string		the compiled url
+ */
+function get_url($args_array, $url='')  {
+	$url = '';
+	
+	// default to self if no url passed
+	if ($url == '')  {
+		$url .= $_SERVER['PHP_SELF'] . '?';
+	}
+	
+	// add a ? to the url if not in passed string
+	if (strstr($url,'?') === false)  {
+		$url .= '?';
+	}
+	
+	// copy the get array to modify some values
+	$get_copy = $_GET;
+	
+	// update the copy with the args passed
+	foreach ($args_array as $key => $val)  {
+		$get_copy[$key] = $val;
+	}
+	
+	// append each get element to the query string
+	foreach ($get_copy as $key => $val)  {
+		$url .= $key . '=' . $val . '&';
+	}
+	
+	// remove the last &
+	$url = substr($url, 0, -1);
+	
+	return $url;
+}
+
 ?>

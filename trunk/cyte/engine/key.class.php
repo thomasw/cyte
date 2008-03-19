@@ -34,6 +34,7 @@ abstract class key {
 	public $failed;															// Failure flag. Set to true if key fails.
 	public $key;															// The key being called (aslo the key's class name)
 	public $data;															// contains data from post or db. see get_data()
+	public $get_params;														// contains values from the GET query string
 	
 	# Referecnes from page object
 	protected $errors;														// Reference to global errors array.
@@ -72,7 +73,7 @@ abstract class key {
 		$this->validate_iteration_list();
 	}
 	
-	private function set_attributes($parameter_array) {
+	protected function set_attributes($parameter_array) {
 		global $lang;														// Get lang data.
         $this_properties = get_object_vars($this);															// Get class properties, including those that are private
 		$this_public_properties = array_diff_key(get_class_vars(get_class($this)), get_class_vars('key'));	// Get class properties, excluding those that are private or defined in key abstract class
@@ -205,6 +206,100 @@ abstract class key {
 			
 		}
 	}
+	
+	/**
+	 *		<get_params>
+	 *
+	 *		this takes values from GET and puts in in this->get_params
+	 *
+	 *	@author		Greg Allard
+	 *	@version	0.0.1	10/12/7
+	 *	@param		array		containing prefix value (if none, all values are retrieved)
+	 *	@return		none
+	**/
+	function get_params($options = array())  {
+		// loop through the GETs
+		foreach ($_GET as $key => $value)  {
+			if (is_array($options) && isset($options['prefix']) && $options['prefix'] != '')  {
+				// get length of prefix
+				$length = strlen($options['prefix']);
+				// find if the key starts with the prefix
+				if (substr($key, 0, $length) == $options['prefix'])  {
+					$this->get_params[$key] = $value;
+				}
+			}
+			else  {
+				$this->get_params[$key] = $value;
+			}
+		}
+	}
+	
+	/**
+	 *		<set_parameters>
+	 *
+	 *		pass this an array and it will use that to format an array ready for data_access
+	 *
+	 *	@author		Greg Allard
+	 *	@version	0.0.1	10/12/7
+	 *	@param		array		'params' set to GETs and 'prefix'
+	 *	@return		array		parameters ready for db query call
+	**/
+	function set_parameters($options = array())  {
+		// check for required stuff
+		if (is_array($options) && isset($options['params']) && is_array($options['params']))  {
+			// init array to return
+			$parameters = array();
+			
+			// loop through the params
+			foreach ($options['params'] as $key => $value)  {
+				// check for good values
+				if ($key != '' && $value != '')  {
+					// if the params are using a namespace
+					if (is_array($options) && isset($options['prefix']) && $options['prefix'] != '')  {
+						// get length of prefix
+						$length = strlen($options['prefix']);
+						
+						$index = substr($key, $length);  // everything after prefix
+					}
+					else  {
+						$index = $key;
+					}
+					
+					switch ($index)  {
+						// these four cases do the same thing
+						case 'direction':
+						case 'sort':
+						case 'limit':
+						case 'start':
+							$parameters[$index] = $value;
+							break;
+						// the other cases
+						default:
+							// if it's a group column param
+							if (($pos = strpos($index, 'group_col')) !== false)  {  // will allow for additional prefixes and find them
+								// need to find the col_val, diff loc in this array
+								//							  prefix if one     . additional prefix if one
+								$col_val = $options['params'][$options['prefix'].substr($index, 0, $pos).'group_val'];
+								// set it
+								$parameters['requirements'][$value] = $col_val;
+							}
+							// if it's a letter requirement
+							if (($pos = strpos($index, 'field_alpha')) !== false)  {  // will allow for additional prefixes and find them
+								// need to find the col_val, diff loc in this array
+								//							  prefix if one     . additional prefix if one
+								$col_val = $options['params'][$options['prefix'].substr($index, 0, $pos).'letter'];
+								// set it
+								$parameters['requirements'][$value] = array('LIKE', $col_val.'%');
+							}
+							
+							break;
+					}
+				}
+			}  // end foreach
+			return $parameters;
+		}
+	}
+	
 	
 	# Abstract functions
 	
