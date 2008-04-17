@@ -246,15 +246,15 @@ abstract class data_access  {
 			$sql = "INSERT INTO ".$this->table_name." SET ";
 			
 			// Set the created time to now
-			if (!isset($this->{$this->created_field}) || $this->{$this->created_field} == 0)  {
+			if (isset($this->created_field) && $this->created_field != '' && (!isset($this->{$this->created_field}) || $this->{$this->created_field} == 0))  {
 				$this->{$this->created_field} = time();
 			}
 			
 			// Set the last mod time
-			if (isset($this->options['last_mod_time']) && $this->options['last_mod_time'] != '')  {
+			if (isset($this->last_mod_field) && $this->last_mod_field != '' && isset($this->options['last_mod_time']) && $this->options['last_mod_time'] != '')  {
 				$this->{$this->last_mod_field} = $this->options['last_mod_time'];
 			}
-			else  {
+			else if (isset($this->last_mod_field) && $this->last_mod_field != '')  {
 				$this->{$this->last_mod_field} = time();
 			}
 			
@@ -773,9 +773,14 @@ abstract class data_access  {
 				unset($this->result_set);
 				$this->result_set = Array();
 				while ($row = $result->fetchRow(MDB2_FETCHMODE_ASSOC))  {
-					// create a new object of this class
-					$this_class = get_class($this);
-					$result_object = new $this_class;
+					// create a new object of this class or class passed
+					if (isset($this->options['class']) && $this->options['class'] != '' && class_exists($this->options['class'], true))  {
+						$result_object = new $this->options['class'];
+					}
+					else  {
+						$this_class = get_class($this);
+						$result_object = new $this_class;
+					}
 					
 					// fill it with the results
 					$result_object->set_field_values($row);
