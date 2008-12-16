@@ -391,6 +391,9 @@ class page {
 		# Parse the page
 		$this->page = $this->parse($this->page);
 		
+		# Insert title into parsed document		
+		$this->page = str_replace("<page-title />", $this->title, $this->page);
+		
 		# Remove any remaining unused content slots and output the page.
 		$this->page = str_replace("<content-slot />", "", $this->page);
 		echo $this->page;
