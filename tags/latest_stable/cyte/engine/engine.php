@@ -30,9 +30,6 @@ require_once('authorizer.class.php');				// Abstract auhtorizer class
 # Post Controller class
 require_once('request_controller.class.php');
 
-# Title class
-require_once('title.class.php');
-
 # Page class (The heart of the template engine)
 require_once('page.class.php');
 
