@@ -102,7 +102,7 @@ class page {
 		   $template_file = $args['template'];
 		}
 		if(isset($args['title'])) {
-		   $title->page_title = $title.': '.$args['title'];
+		   $title = $title.': '.$args['title'];
 		}
 		if(isset($args['auth_requirement'])) {
 		   $auth_requirement = $args['auth_requirement'];
