@@ -91,7 +91,7 @@ class page {
 		
 		# Get default values
 		$template_file              = $template_conf['def_template'];
-		$title                 	 	= new title();
+		$title                 	 	= $site_conf['title'];
 		$auth_requirement           = $template_conf['def_auth_req'];
 		$auth_form                  = $template_conf['def_auth_form'];
 		$auth_routine               = $template_conf['def_auth_routine'];
@@ -102,7 +102,7 @@ class page {
 		   $template_file = $args['template'];
 		}
 		if(isset($args['title'])) {
-		   $title->page_title = $args['title'];
+		   $title->page_title = $title.': '.$args['title'];
 		}
 		if(isset($args['auth_requirement'])) {
 		   $auth_requirement = $args['auth_requirement'];
