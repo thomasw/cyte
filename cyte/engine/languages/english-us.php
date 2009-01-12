@@ -73,7 +73,7 @@ $lang = array(
 	"login_unauth"			=> "You are not authorized to view this page.",
 	"login_idle"			=> "You have been logged out due to being idle for too long.",
 	"login_expire"			=> "Your authorization session has expired.",
-	"login_breach"			=> "There has been a security breach, authorization has been terminated to prevent unauthorized access. If the problem persists, please contact a system administrator.",
+	"login_breach"			=> "Account accessed from different location. Session reset. ",
 	"login_system_error"	=> "The system was unable to connect to the server to check your credentials. If the problem persists, please contact a system administrator.",
 	// Output
 	"render_time"	=> "This page was rendered in: ", 
