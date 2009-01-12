@@ -88,6 +88,15 @@ abstract class authorizer  {
 	 */
 	var $password = '';
 	
+	
+	/**
+	 * URL or path to redirect to after logging in. 
+     * Used by login_callback. Supplied by POST
+	 *
+	 * @var string
+	 */
+	var $redirect = '';
+    
 	/**
 	 * Login callback function name
 	 *
@@ -160,6 +169,18 @@ abstract class authorizer  {
 		if (is_array($site_conf))  {
 			$this->site_conf = $site_conf;
 		}
+        
+        if (!isset($this->site_conf['cookie_base_dir']))  {
+            $this->site_conf['cookie_base_dir'] = $this->site_conf['base_dir'];
+        }
+        
+        if (!isset($this->site_conf['cookie_namespace']))  {
+            $this->site_conf['cookie_namespace'] = '';
+        }
+        
+        if (!isset($this->site_conf['cookie_salt']))  {
+            $this->site_conf['cookie_salt'] = '';
+        }
 		
 		// copy the language array
 		if (is_array($lang))  {
@@ -240,8 +261,8 @@ abstract class authorizer  {
 		else if (isset($_GET['openid_identity']) && $_GET['openid_identity'] != '')  {
 			$this->username = (get_magic_quotes_gpc() == 1 ? stripslashes($_GET['openid_identity']) : $_GET['openid_identity']);
 		}
-		else if (isset($_COOKIE['username']) && $_COOKIE['username'] != '' && $this->options['use_cookies'])  {
-			$this->username = $_COOKIE['username'];
+		else if (isset($_COOKIE[$this->site_conf['cookie_namespace'].'username']) && $_COOKIE[$this->site_conf['cookie_namespace'].'username'] != '' && $this->options['use_cookies'])  {
+			$this->username = $_COOKIE[$this->site_conf['cookie_namespace'].'username'];
 		}
 		else if (isset($_SESSION[$this->session_name]['username']) && $_SESSION[$this->session_name]['username'] != '')  {
 			$this->username = $_SESSION[$this->session_name]['username'];
@@ -250,10 +271,14 @@ abstract class authorizer  {
 		if (isset($_POST['password']) && $_POST['password'] != '')  {
 			$this->password = (get_magic_quotes_gpc() == 1 ? stripslashes($_POST['password']) : $_POST['password']);
 		}
-		else if (isset($_COOKIE['password']) && $_COOKIE['password'] != '' && $this->options['use_cookies'])  {
-			$this->password = $_COOKIE['password'];  // cookie already encrypted
+		else if (isset($_COOKIE[$this->site_conf['cookie_namespace'].'password']) && $_COOKIE[$this->site_conf['cookie_namespace'].'password'] != '' && $this->options['use_cookies'])  {
+			$this->password = $_COOKIE[$this->site_conf['cookie_namespace'].'password'];  // cookie already encrypted
 			$this->options['cryptType'] = 'none';
 		}
+        
+        if (isset($_POST['redirect']))  {
+            $this->redirect = $_POST['redirect'];
+        }
 	}
 	
 	/**
@@ -268,7 +293,7 @@ abstract class authorizer  {
 		
 		// setup and start the cookies and sessions
 		@session_name($this->options['session_id_name']);
-		@session_set_cookie_params($this->site_conf['exp_time'], $this->site_conf['base_dir']."/", $this->site_conf['domain']);
+		@session_set_cookie_params($this->site_conf['exp_time'], $this->site_conf['cookie_base_dir']."/", $this->site_conf['domain']);
 		@session_start();
 		
 		// copy the data from post/cookie
@@ -348,7 +373,7 @@ abstract class authorizer  {
 		}
 		
 		$_SESSION[$this->session_name]['challengecookie'] = md5($_SESSION[$this->session_name]['challengekey'].microtime());
-		setcookie('authchallenge', $_SESSION[$this->session_name]['challengecookie']);
+		setcookie($this->site_conf['cookie_namespace'].'authchallenge', $_SESSION[$this->session_name]['challengecookie']);
 		
 		$_SESSION[$this->session_name]['registered']   = true;
 		$_SESSION[$this->session_name]['username']     = $username;
@@ -359,13 +384,13 @@ abstract class authorizer  {
 		
 		// check if cookies should be used
 		if ($this->options['use_cookies'])  {
-			setcookie('username', $this->username, time() + $this->site_conf['exp_time'], $this->site_conf['base_dir']."/", $this->site_conf['domain']);
+			setcookie($this->site_conf['cookie_namespace'].'username', $this->username, time() + $this->site_conf['exp_time'], $this->site_conf['cookie_base_dir']."/", $this->site_conf['domain']);
 			
 			if ($this->options['cryptType'] == 'none')  {
-				setcookie('password', $this->password, time() + $this->site_conf['exp_time'], $this->site_conf['base_dir']."/", $this->site_conf['domain']);
+				setcookie($this->site_conf['cookie_namespace'].'password', $this->password, time() + $this->site_conf['exp_time'], $this->site_conf['cookie_base_dir']."/", $this->site_conf['domain']);
 			}
 			else  {
-				setcookie('password', md5($this->password), time() + $this->site_conf['exp_time'], $this->site_conf['base_dir']."/", $this->site_conf['domain']);
+				setcookie($this->site_conf['cookie_namespace'].'password', md5($this->password.$this->site_conf['cookie_salt']), time() + $this->site_conf['exp_time'], $this->site_conf['cookie_base_dir']."/", $this->site_conf['domain']);
 			}
 		}
 	}
@@ -405,8 +430,8 @@ abstract class authorizer  {
 		
 		$_SESSION[$this->session_name] = null;
 		
-		setcookie('username', false, time() - $this->site_conf['exp_time'], $this->site_conf['base_dir']."/", $this->site_conf['domain']);
-		setcookie('password', true, time() - $this->site_conf['exp_time'], $this->site_conf['base_dir']."/", $this->site_conf['domain']);
+		setcookie($this->site_conf['cookie_namespace'].'username', false, time() - $this->site_conf['exp_time'], $this->site_conf['cookie_base_dir']."/", $this->site_conf['domain']);
+		setcookie($this->site_conf['cookie_namespace'].'password', true, time() - $this->site_conf['exp_time'], $this->site_conf['cookie_base_dir']."/", $this->site_conf['domain']);
 	}
 	
     /**
@@ -469,8 +494,7 @@ abstract class authorizer  {
 	 * @return boolean  Whether or not the user is authenticated.
 	 */
 	private function spoof_check()  {
-		return true;
-		/*if (isset($this->current_user->user_id) && $this->current_user->user_id != '')  {
+		if (isset($this->current_user->user_id) && $this->current_user->user_id != '')  {
 			// Check for ip change
 			if ( isset($this->server['REMOTE_ADDR']) && $this->current_user->user_remote_addr != $this->server['REMOTE_ADDR'])  {
 				// Check if the IP of the user has changed, if so we assume a man in the middle attack and log him out
@@ -479,7 +503,7 @@ abstract class authorizer  {
 				$this->logout();
 				return false;
 			}
-			
+		/*
 			// Check for useragent change
 			if ( isset($this->server['HTTP_USER_AGENT']) && $this->current_user->user_http_user_agent != $this->server['HTTP_USER_AGENT'])  {
 				// Check if the User-Agent of the user has changed, if so we assume a man in the middle attack and log him out
@@ -488,7 +512,9 @@ abstract class authorizer  {
 				$this->logout();
 				return false;
 			}
-		}*/
+        */
+		}
+        return true;
 	}
 	
 	/**
