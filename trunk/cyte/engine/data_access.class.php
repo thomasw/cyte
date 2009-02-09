@@ -871,7 +871,7 @@ abstract class data_access  {
 					// need to loop through the options
 					foreach ($options as $key => $option)  {
 						// if this option is an operator
-						if (in_array ($option, $operators))  {
+						if (in_array ($option, $operators,true))  {
 							// temporarily store this which will be used in the next loop
 							$temp = ' '.$field_prefix.''.$field_name.' '.$option.' ';
 						}
